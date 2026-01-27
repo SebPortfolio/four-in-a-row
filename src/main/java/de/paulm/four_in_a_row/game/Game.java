@@ -1,42 +1,59 @@
 package de.paulm.four_in_a_row.game;
 
+import de.paulm.four_in_a_row.profil.PlayerProfile;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import tools.jackson.databind.ObjectMapper;
 
 @Entity
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
-public class Spielfeld {
+@Setter
+public class Game {
 
     @Id
     @GeneratedValue
     private Long id;
 
-    private static final byte REIHEN = 6;
-    private static final byte SPALTEN = 7;
+    @OneToOne
+    private PlayerProfile player1;
 
-    @OneToOne(mappedBy = "spielfeld")
-    private Spiel spiel;
+    @OneToOne
+    private PlayerProfile player2;
+
+    @Enumerated(EnumType.STRING)
+    private GameStatus status;
+
+    private byte currentPlayer; // 1 oder 2
 
     @Lob
+    @Column(nullable = false)
     private String boardJson;
 
+    private static final byte ROWS = 6;
+    private static final byte COLUMNS = 7;
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public Spielfeld(Spiel spiel) {
-        this.spiel = spiel;
+    public Game(PlayerProfile player1, PlayerProfile player2) {
+        this.player1 = player1;
+        this.player2 = player2;
+        this.status = GameStatus.IN_PROGRESS;
+        this.currentPlayer = 1; // Spieler 1 beginnt
         this.boardJson = initBoard();
     }
 
-    // Initiales leeres Board
+    // Initiales leeres Spielfeld
     private String initBoard() {
-        byte[][] board = new byte[REIHEN][SPALTEN];
+        byte[][] board = new byte[ROWS][COLUMNS];
         return toJson(board);
     }
 
@@ -58,12 +75,12 @@ public class Spielfeld {
         }
     }
 
-    // Zugriff auf Board als byte[][] für die Logik
+    // Zugriff auf Spielfeld als byte[][] für die Logik
     public byte[][] getBoard() {
         return fromJson(boardJson);
     }
 
-    // Board setzen + serialisieren
+    // Spielfeld setzen + serialisieren
     public void setBoard(byte[][] board) {
         this.boardJson = toJson(board);
     }

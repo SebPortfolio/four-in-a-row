@@ -14,35 +14,35 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-public class SpielerProfil {
+public class PlayerProfile {
 
     @Id
     @GeneratedValue
     private Long id;
 
-    private String benutzername;
+    private String username;
 
     private String email;
 
-    private LocalDate registriertAm;
+    private LocalDate registeredOn;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private SpielerStatistik statistik;
+    private PlayerStatistic statistic;
 
-    public void benutzernameAendern(String neuerName) {
-        if (neuerName == null || neuerName.isBlank()) {
+    public void changeUsername(String newName) {
+        if (newName == null || newName.isBlank()) {
             throw new IllegalArgumentException("Benutzername darf nicht leer sein");
         }
-        if (neuerName.length() < 3) {
+        if (newName.length() < 3) {
             throw new IllegalArgumentException("Benutzername muss mindestens 3 Zeichen haben");
         }
-        this.benutzername = neuerName;
+        this.username = newName;
     }
 
-    public void emailAendern(String neueEmail) {
-        if (neueEmail == null || !neueEmail.matches(".+@.+\\..+")) {
+    public void changeEmail(String newEmail) {
+        if (newEmail == null || !newEmail.matches(".+@.+\\..+")) {
             throw new IllegalArgumentException("Ungültige Email");
         }
-        this.email = neueEmail;
+        this.email = newEmail;
     }
 }
