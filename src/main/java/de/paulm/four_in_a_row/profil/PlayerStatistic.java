@@ -17,9 +17,9 @@ public class PlayerStatistic {
     @GeneratedValue
     private Long id;
 
-    private Long totalGames;
+    private int totalGames;
 
-    private Long gamesWon;
+    private int gamesWon;
 
     private LocalDate lastPlayedOn;
 

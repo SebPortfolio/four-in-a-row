@@ -23,13 +23,22 @@ public class PlayerProfileService {
     @Transactional
     public void editUsername(Long playerId, String newName) {
         PlayerProfile profile = this.getSpielerProfilById(playerId);
-        profile.changeUsername(newName);
+        if (newName == null || newName.isBlank()) {
+            throw new IllegalArgumentException("Benutzername darf nicht leer sein");
+        }
+        if (newName.length() < 3) {
+            throw new IllegalArgumentException("Benutzername muss mindestens 3 Zeichen haben");
+        }
+        profile.setUsername(newName);
     }
 
     @Transactional
     public void editEmail(Long playerId, String newEmail) {
         PlayerProfile profile = this.getSpielerProfilById(playerId);
-        profile.changeEmail(newEmail);
+        if (newEmail == null || !newEmail.matches(".+@.+\\..+")) {
+            throw new IllegalArgumentException("Ungültige Email");
+        }
+        profile.setEmail(newEmail);
     }
 
     public PlayerStatistic getPlayerStatistic(Long playerId) {

@@ -10,9 +10,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 public class PlayerProfile {
 
@@ -28,21 +30,4 @@ public class PlayerProfile {
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private PlayerStatistic statistic;
-
-    public void changeUsername(String newName) {
-        if (newName == null || newName.isBlank()) {
-            throw new IllegalArgumentException("Benutzername darf nicht leer sein");
-        }
-        if (newName.length() < 3) {
-            throw new IllegalArgumentException("Benutzername muss mindestens 3 Zeichen haben");
-        }
-        this.username = newName;
-    }
-
-    public void changeEmail(String newEmail) {
-        if (newEmail == null || !newEmail.matches(".+@.+\\..+")) {
-            throw new IllegalArgumentException("Ungültige Email");
-        }
-        this.email = newEmail;
-    }
 }

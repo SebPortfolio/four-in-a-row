@@ -25,18 +25,22 @@ public class Game {
     private Long id;
 
     @OneToOne
+    @Column(name = "PLAYER_1", nullable = false)
     private PlayerProfile player1;
 
     @OneToOne
+    @Column(name = "PLAYER_2", nullable = false)
     private PlayerProfile player2;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "GAME_STATUS", nullable = false)
     private GameStatus status;
 
+    @Column(name = "CURRENT_PLAYER", nullable = false)
     private byte currentPlayer; // 1 oder 2
 
     @Lob
-    @Column(nullable = false)
+    @Column(name = "BOARD", nullable = false)
     private String boardJson;
 
     private static final byte ROWS = 6;
