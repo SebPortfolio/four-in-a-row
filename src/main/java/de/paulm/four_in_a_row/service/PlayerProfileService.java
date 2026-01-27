@@ -2,12 +2,14 @@ package de.paulm.four_in_a_row.service;
 
 import org.springframework.stereotype.Service;
 
+import de.paulm.four_in_a_row.domain.exceptions.IllegalEmailException;
+import de.paulm.four_in_a_row.domain.exceptions.IllegalUsernameException;
 import de.paulm.four_in_a_row.domain.exceptions.PlayerProfileNotFoundException;
 import de.paulm.four_in_a_row.profil.PlayerProfile;
 import de.paulm.four_in_a_row.profil.PlayerStatistic;
 import de.paulm.four_in_a_row.repository.PlayerProfileRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +26,10 @@ public class PlayerProfileService {
     public void editUsername(Long playerId, String newName) {
         PlayerProfile profile = this.getSpielerProfilById(playerId);
         if (newName == null || newName.isBlank()) {
-            throw new IllegalArgumentException("Benutzername darf nicht leer sein");
+            throw new IllegalUsernameException(newName, "Benutzername darf nicht leer sein");
         }
         if (newName.length() < 3) {
-            throw new IllegalArgumentException("Benutzername muss mindestens 3 Zeichen haben");
+            throw new IllegalUsernameException(newName, "Benutzername muss mindestens 3 Zeichen haben");
         }
         profile.setUsername(newName);
     }
@@ -36,11 +38,12 @@ public class PlayerProfileService {
     public void editEmail(Long playerId, String newEmail) {
         PlayerProfile profile = this.getSpielerProfilById(playerId);
         if (newEmail == null || !newEmail.matches(".+@.+\\..+")) {
-            throw new IllegalArgumentException("Ungültige Email");
+            throw new IllegalEmailException(newEmail, "ungültiges Format");
         }
         profile.setEmail(newEmail);
     }
 
+    @Transactional(readOnly = true)
     public PlayerStatistic getPlayerStatistic(Long playerId) {
         PlayerProfile profile = this.getSpielerProfilById(playerId);
         return profile.getStatistic();

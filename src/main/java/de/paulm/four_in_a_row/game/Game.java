@@ -36,6 +36,10 @@ public class Game {
     @Column(name = "GAME_STATUS", nullable = false)
     private GameStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "GAME_RESULT", nullable = true)
+    private GameResult result;
+
     @Column(name = "CURRENT_PLAYER", nullable = false)
     private byte currentPlayer; // 1 oder 2
 

@@ -7,9 +7,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 public class PlayerStatistic {
 
@@ -21,16 +23,20 @@ public class PlayerStatistic {
 
     private int gamesWon;
 
+    /**
+     * Anzahl der Spiele, die der Spieler verloren hat.
+     * Nötig, da Unentschieden möglich sind.
+     */
+    private int gamesLost;
+
+    /**
+     * Anzahl der Spiele, die der Spieler aufgegeben hat.
+     * In der Anzahl der verlorenen Spiele enthalten.
+     */
+    private int gamesSurrendered;
+
+    /**
+     * Datum, an dem der Spieler zuletzt ein Spiel gespielt hat.
+     */
     private LocalDate lastPlayedOn;
-
-    public void raiseCountAfterVictory() {
-        this.totalGames = this.totalGames + 1;
-        this.gamesWon = this.gamesWon + 1;
-        this.lastPlayedOn = LocalDate.now();
-    }
-
-    public void raiseCountAfterLose() {
-        this.totalGames = this.totalGames + 1;
-        this.lastPlayedOn = LocalDate.now();
-    }
 }

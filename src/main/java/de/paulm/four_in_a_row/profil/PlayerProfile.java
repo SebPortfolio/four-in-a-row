@@ -26,6 +26,9 @@ public class PlayerProfile {
 
     private String email;
 
+    /**
+     * Datum der Registrierung des Spielers.
+     */
     private LocalDate registeredOn;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
