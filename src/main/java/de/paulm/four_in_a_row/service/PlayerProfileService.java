@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import de.paulm.four_in_a_row.domain.exceptions.IllegalEmailException;
 import de.paulm.four_in_a_row.domain.exceptions.IllegalUsernameException;
 import de.paulm.four_in_a_row.domain.exceptions.PlayerProfileNotFoundException;
-import de.paulm.four_in_a_row.profil.PlayerProfile;
-import de.paulm.four_in_a_row.profil.PlayerStatistic;
+import de.paulm.four_in_a_row.player.PlayerProfile;
+import de.paulm.four_in_a_row.player.PlayerStatistic;
 import de.paulm.four_in_a_row.repository.PlayerProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +18,9 @@ public class PlayerProfileService {
     private final PlayerProfileRepository repository;
 
     public PlayerProfile getSpielerProfilById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Spieler-Profil-ID darf nicht null sein");
+        }
         return repository.findById(id)
                 .orElseThrow(() -> new PlayerProfileNotFoundException(id));
     }

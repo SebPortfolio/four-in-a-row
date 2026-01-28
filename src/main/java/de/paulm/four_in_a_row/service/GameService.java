@@ -10,7 +10,7 @@ import de.paulm.four_in_a_row.domain.exceptions.GameNotFoundException;
 import de.paulm.four_in_a_row.game.Game;
 import de.paulm.four_in_a_row.game.GameResult;
 import de.paulm.four_in_a_row.game.GameStatus;
-import de.paulm.four_in_a_row.profil.PlayerProfile;
+import de.paulm.four_in_a_row.player.PlayerProfile;
 import de.paulm.four_in_a_row.repository.GameRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,9 +21,13 @@ import lombok.extern.slf4j.Slf4j;
 public class GameService {
 
     private final GameRepository repository;
+    private final PlayerProfileService playerProfileService;
     private final PlayerStatisticService playerStatisticService;
 
     public Game getSpielById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Spiel-ID darf nicht null sein");
+        }
         return repository.findById(id)
                 .orElseThrow(() -> new GameNotFoundException(id));
     }
@@ -33,7 +37,9 @@ public class GameService {
     }
 
     @Transactional
-    public Game createGame(PlayerProfile player1, PlayerProfile player2) {
+    public Game createGame(Long playerProfileId1, Long playerProfileId2) {
+        PlayerProfile player1 = playerProfileService.getSpielerProfilById(playerProfileId1);
+        PlayerProfile player2 = playerProfileService.getSpielerProfilById(playerProfileId2);
         Game game = new Game(player1, player2);
         return repository.save(game);
     }
@@ -46,11 +52,17 @@ public class GameService {
 
     @Transactional
     public Game saveGame(Game spiel) {
+        if (spiel == null) {
+            throw new IllegalArgumentException("Spiel darf nicht null sein");
+        }
         return repository.save(spiel);
     }
 
     @Transactional
     public void deleteGame(Long spielId) {
+        if (spielId == null) {
+            throw new IllegalArgumentException("Spiel-ID darf nicht null sein");
+        }
         repository.deleteById(spielId);
     }
 
@@ -106,7 +118,7 @@ public class GameService {
         if (game.getResult() != null) {
             throw new IllegalStateException("Spiel hat bereits ein Ergebnis: " + game.getResult());
         }
-        game.setResult(game.getCurrentPlayer() == 1 ? GameResult.PLAYER1_WON : GameResult.PLAYER2_WON);
+        game.setResult(game.getCurrentPlayer() == 1 ? GameResult.PLAYER_1_WON : GameResult.PLAYER_2_WON);
         this.updatePlayerStatistics(game, false);
     }
 
@@ -126,9 +138,9 @@ public class GameService {
         }
 
         if (game.getPlayer2().equals(surrenderingPlayer)) {
-            game.setResult(GameResult.PLAYER1_WON);
+            game.setResult(GameResult.PLAYER_1_WON);
         } else {
-            game.setResult(GameResult.PLAYER2_WON);
+            game.setResult(GameResult.PLAYER_2_WON);
         }
 
         this.updatePlayerStatistics(game, true);
@@ -136,11 +148,11 @@ public class GameService {
 
     private void updatePlayerStatistics(Game game, boolean isSurrender) {
         switch (game.getResult()) {
-            case PLAYER1_WON:
+            case PLAYER_1_WON:
                 playerStatisticService.gameWon(game.getPlayer1());
                 playerStatisticService.gameLost(game.getPlayer2(), isSurrender);
                 break;
-            case PLAYER2_WON:
+            case PLAYER_2_WON:
                 playerStatisticService.gameWon(game.getPlayer2());
                 playerStatisticService.gameLost(game.getPlayer1(), isSurrender);
                 break;

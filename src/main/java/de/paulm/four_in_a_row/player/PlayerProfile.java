@@ -1,4 +1,4 @@
-package de.paulm.four_in_a_row.profil;
+package de.paulm.four_in_a_row.player;
 
 import java.time.LocalDate;
 
@@ -15,7 +15,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class PlayerProfile {
 
     @Id
@@ -31,6 +31,6 @@ public class PlayerProfile {
      */
     private LocalDate registeredOn;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "playerProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private PlayerStatistic statistic;
 }

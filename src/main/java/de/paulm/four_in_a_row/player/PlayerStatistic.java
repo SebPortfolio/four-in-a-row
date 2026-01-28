@@ -1,10 +1,11 @@
-package de.paulm.four_in_a_row.profil;
+package de.paulm.four_in_a_row.player;
 
 import java.time.LocalDate;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,12 +13,15 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class PlayerStatistic {
 
     @Id
-    @GeneratedValue
     private Long id;
+
+    @OneToOne
+    @MapsId
+    private PlayerProfile playerProfile;
 
     private int totalGames;
 
