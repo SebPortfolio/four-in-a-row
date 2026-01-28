@@ -7,8 +7,10 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,18 +20,20 @@ import tools.jackson.databind.ObjectMapper;
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
 @Setter
+@Table(name = "GAME")
 public class Game {
 
     @Id
     @GeneratedValue
+    @Column(name = "ID")
     private Long id;
 
     @OneToOne
-    @Column(name = "PLAYER_1", nullable = false)
+    @JoinColumn(name = "PLAYER_1_ID", nullable = false)
     private PlayerProfile player1;
 
     @OneToOne
-    @Column(name = "PLAYER_2", nullable = false)
+    @JoinColumn(name = "PLAYER_2_ID", nullable = false)
     private PlayerProfile player2;
 
     @Enumerated(EnumType.STRING)

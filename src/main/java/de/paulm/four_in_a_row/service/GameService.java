@@ -32,6 +32,7 @@ public class GameService {
         return repository.findAllByStatusAndPlayer1OrPlayer2(GameStatus.PAUSED, playerId, playerId);
     }
 
+    @Transactional
     public Game createGame(PlayerProfile player1, PlayerProfile player2) {
         Game game = new Game(player1, player2);
         return repository.save(game);
@@ -43,10 +44,12 @@ public class GameService {
         return this.getSpielById(spielId);
     }
 
+    @Transactional
     public Game saveGame(Game spiel) {
         return repository.save(spiel);
     }
 
+    @Transactional
     public void deleteGame(Long spielId) {
         repository.deleteById(spielId);
     }
