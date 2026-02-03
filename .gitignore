@@ -1,13 +1,13 @@
-# Compiled class file
+# Compiled class file #
 *.class
 
-# Log file
+# Log file #
 *.log
 
-# BlueJ files
+# BlueJ files #
 *.ctxt
 
-# Mobile Tools for Java (J2ME)
+# Mobile Tools for Java (J2ME) #
 .mtj.tmp/
 
 # Package Files #
@@ -19,7 +19,7 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml #
 hs_err_pid*
 replay_pid*
 
@@ -29,7 +29,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+# STS #
 .apt_generated
 .classpath
 .factorypath
@@ -38,13 +38,13 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
+# IntelliJ IDEA #
 .idea
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+# NetBeans #
 /nbproject/private/
 /nbbuild/
 /dist/
@@ -54,8 +54,8 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
+# VS Code #
 .vscode/
 
-### OpenAPI-Generator ###
+# OpenAPI-Generator #
 generated/
