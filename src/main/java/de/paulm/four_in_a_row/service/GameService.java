@@ -24,7 +24,7 @@ public class GameService {
     private final PlayerProfileService playerProfileService;
     private final PlayerStatisticService playerStatisticService;
 
-    public Game getSpielById(Long id) {
+    public Game getGameById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Spiel-ID darf nicht null sein");
         }
@@ -32,22 +32,30 @@ public class GameService {
                 .orElseThrow(() -> new GameNotFoundException(id));
     }
 
+    public List<Game> getAllGames(GameStatus gameStatus) {
+        if (gameStatus == null) {
+            return repository.findAll();
+        }
+        return repository.findAllByStatus(gameStatus);
+    }
+
     public List<Game> getPausedGamesForPlayer(Long playerId) {
-        return repository.findAllByStatusAndPlayer1OrPlayer2(GameStatus.PAUSED, playerId, playerId);
+        PlayerProfile player = playerProfileService.getPlayerProfileById(playerId);
+        return repository.findAllByStatusAndPlayer1OrPlayer2(GameStatus.PAUSED, player, player);
     }
 
     @Transactional
     public Game createGame(Long playerProfileId1, Long playerProfileId2) {
-        PlayerProfile player1 = playerProfileService.getSpielerProfilById(playerProfileId1);
-        PlayerProfile player2 = playerProfileService.getSpielerProfilById(playerProfileId2);
+        PlayerProfile player1 = playerProfileService.getPlayerProfileById(playerProfileId1);
+        PlayerProfile player2 = playerProfileService.getPlayerProfileById(playerProfileId2);
         Game game = new Game(player1, player2);
         return repository.save(game);
     }
 
-    public Game ladeSpiel(Long spielId) {
+    public Game loadGame(Long spielId) {
         // TODO: Logik zum Laden aus einem Speicherort hinzufügen, Spielstatus ändern
         // etc.
-        return this.getSpielById(spielId);
+        return this.getGameById(spielId);
     }
 
     @Transactional
@@ -67,43 +75,45 @@ public class GameService {
     }
 
     public void pauseGame(Long spielId) {
-        Game game = this.getSpielById(spielId);
+        Game game = this.getGameById(spielId);
         game.setStatus(GameStatus.PAUSED);
     }
 
     public void resumeGame(Long spielId) {
-        Game game = this.getSpielById(spielId);
+        Game game = this.getGameById(spielId);
         game.setStatus(GameStatus.IN_PROGRESS);
     }
 
     public void surrenderGame(Long spielId, Long surrenderingPlayerId) {
-        Game game = this.getSpielById(spielId);
+        Game game = this.getGameById(spielId);
         game.setStatus(GameStatus.COMPLETED);
 
         // Logik zum Aktualisieren der Spielerstatistiken hinzufügen
     }
 
     @Transactional
-    public void applyMove(Long gameId, byte column) {
-        Game game = this.getSpielById(gameId);
+    public void makeMove(Long gameId, byte column) {
+        Game game = this.getGameById(gameId);
         byte[][] board = game.getBoard();
 
         validateGameState(game);
         validateMove(board, column);
 
-        this.dropToken(board, column, game.getCurrentPlayer());
+        this.dropToken(board, column, getBoardNumberForCurrentPlayer(game));
         game.setBoard(board);
 
         if (!checkAndHandleGameEnd(game)) {
             // Spiel geht weiter
-            this.nextPlayer(game);
+            game = this.changeToNextPlayer(game);
         }
     }
 
     private boolean checkAndHandleGameEnd(Game game) {
         byte[][] board = game.getBoard();
 
-        if (this.isVictory(board, game.getCurrentPlayer())) {
+        byte boardNumberOfCurrentPlayer = getBoardNumberForCurrentPlayer(game);
+
+        if (this.isVictory(board, boardNumberOfCurrentPlayer)) {
             this.endGameAsVictory(game);
             return true;
         } else if (this.isDraw(board)) {
@@ -118,7 +128,8 @@ public class GameService {
         if (game.getResult() != null) {
             throw new IllegalStateException("Spiel hat bereits ein Ergebnis: " + game.getResult());
         }
-        game.setResult(game.getCurrentPlayer() == 1 ? GameResult.PLAYER_1_WON : GameResult.PLAYER_2_WON);
+        game.setResult(
+                game.getCurrentPlayer() == game.getPlayer1() ? GameResult.PLAYER_1_WON : GameResult.PLAYER_2_WON);
         this.updatePlayerStatistics(game, false);
     }
 
@@ -166,34 +177,6 @@ public class GameService {
         }
     }
 
-    /*
-     * private PlayerProfile getCurrentPlayerProfile(Game game) {
-     * byte currentPlayer = game.getCurrentPlayer();
-     * 
-     * if (currentPlayer == 1) {
-     * return game.getPlayer1();
-     * } else if (currentPlayer == 2) {
-     * return game.getPlayer2();
-     * }
-     * 
-     * throw new IllegalStateException("Ungültiger aktueller Spieler: " +
-     * currentPlayer);
-     * }
-     * 
-     * private PlayerProfile getNotCurrentPlayerProfile(Game game) {
-     * byte currentPlayer = game.getCurrentPlayer();
-     * 
-     * if (currentPlayer == 1) {
-     * return game.getPlayer2();
-     * } else if (currentPlayer == 2) {
-     * return game.getPlayer1();
-     * }
-     * 
-     * throw new IllegalStateException("Ungültiger aktueller Spieler: " +
-     * currentPlayer);
-     * }
-     */
-
     private void validateGameState(Game game) {
         if (game.getStatus() != GameStatus.IN_PROGRESS) {
             throw new IllegalStateException("Spiel ist nicht im Fortschrittsstatus");
@@ -209,60 +192,111 @@ public class GameService {
         }
     }
 
-    private void dropToken(byte[][] board, byte column, byte currentPlayer) {
+    private void dropToken(byte[][] board, byte column, byte boardNumber) {
         for (int row = board.length - 1; row >= 0; row--) {
             if (board[row][column] == 0) {
-                board[row][column] = currentPlayer;
+                board[row][column] = boardNumber;
                 return;
             }
         }
         throw new ColumnFullException(column);
     }
 
-    private void nextPlayer(Game game) {
-        byte currentPlayer = game.getCurrentPlayer();
-        game.setCurrentPlayer(currentPlayer == 1 ? (byte) 2 : (byte) 1);
+    /**
+     * Setze Spieler 1 als neuen aktuellen Spieler, wenn Spieler 2 aktueller Spieler
+     * ist, und umgekehrt
+     * 
+     * @param game Das Spiel, für das der aktuelle Spieler gewechselt werden soll
+     * @return Das aktualisierte Spiel mit geändertem aktuellem Spieler
+     */
+    private Game changeToNextPlayer(Game game) {
+        game.setCurrentPlayer(game.getCurrentPlayer() == game.getPlayer1() ? game.getPlayer2() : game.getPlayer1());
+        return game;
     }
 
-    private boolean isVictory(byte[][] board, byte currentPlayer) {
+    /**
+     * Gibt die Board-Nummer (1 oder 2) zurück, die dem aktuellen Spieler im Spiel
+     * zugeordnet ist.
+     * 
+     * @param game Das Spiel, für das die Board-Nummer ermittelt werden soll
+     * @return 1, wenn der aktuelle Spieler Spieler 1 ist, 2 wenn der aktuelle
+     *         Spieler Spieler 2 ist
+     */
+    public byte getBoardNumberForCurrentPlayer(Game game) {
+        if (game.getCurrentPlayer().getId().equals(game.getPlayer1().getId()))
+            return 1;
+        if (game.getCurrentPlayer().getId().equals(game.getPlayer2().getId()))
+            return 2;
+        throw new IllegalArgumentException("Player not part of this game");
+    }
+
+    /**
+     * Gibt das Spielerprofil zurück, das der angegebenen Board-Nummer (1 oder 2) im
+     * Spiel zugeordnet ist.
+     * 
+     * @param game   Das Spiel, für das das Spielerprofil ermittelt werden soll
+     * @param number Die Board-Nummer (1 oder 2), für die das Spielerprofil
+     *               zurückgegeben werden soll
+     * @return Das Spielerprofil, das der angegebenen Board-Nummer im Spiel
+     *         zugeordnet ist
+     */
+    public PlayerProfile getPlayerByBoardNumber(Game game, byte number) {
+        return (number == 1) ? game.getPlayer1() : game.getPlayer2();
+    }
+
+    /**
+     * Überprüft, ob der aktuelle Spielstand auf dem Spielfeld ein Sieg für den
+     * Spieler mit der angegebenen Board-Nummer darstellt.
+     * Ein Sieg liegt vor, wenn der Spieler vier seiner Steine in einer Reihe hat -
+     * horizontal, vertikal oder diagonal.
+     * 
+     * @param board       Das aktuelle Spielfeld, dargestellt als 2D-Array von
+     *                    Bytes, wobei 0 für leere Felder, 1 für Spieler 1 und 2 für
+     *                    Spieler 2 steht
+     * @param boardNumber Die Board-Nummer (1 oder 2) des Spielers, für den
+     *                    überprüft werden soll, ob er
+     * @return true, wenn der Spieler mit der angegebenen Board-Nummer vier Steine
+     *         in einer Reihe hat, andernfalls false
+     */
+    private boolean isVictory(byte[][] board, byte boardNumber) {
         int totalRows = board.length;
         int totalColumns = board[0].length;
 
         for (int row = totalRows - 1; row >= 0; row--) {
             for (int column = 0; column < totalColumns; column++) {
-                if (board[row][column] != currentPlayer) {
+                if (board[row][column] != boardNumber) {
                     continue;
                 }
 
                 // Horizontal nach rechts
                 if (column + 3 < totalColumns &&
-                        board[row][column + 1] == currentPlayer &&
-                        board[row][column + 2] == currentPlayer &&
-                        board[row][column + 3] == currentPlayer) {
+                        board[row][column + 1] == boardNumber &&
+                        board[row][column + 2] == boardNumber &&
+                        board[row][column + 3] == boardNumber) {
                     return true;
                 }
 
                 // Vertikal nach oben
                 if (row - 3 >= 0 &&
-                        board[row - 1][column] == currentPlayer &&
-                        board[row - 2][column] == currentPlayer &&
-                        board[row - 3][column] == currentPlayer) {
+                        board[row - 1][column] == boardNumber &&
+                        board[row - 2][column] == boardNumber &&
+                        board[row - 3][column] == boardNumber) {
                     return true;
                 }
 
                 // Diagonal nach rechts oben
                 if (row - 3 >= 0 && column + 3 < totalColumns &&
-                        board[row - 1][column + 1] == currentPlayer &&
-                        board[row - 2][column + 2] == currentPlayer &&
-                        board[row - 3][column + 3] == currentPlayer) {
+                        board[row - 1][column + 1] == boardNumber &&
+                        board[row - 2][column + 2] == boardNumber &&
+                        board[row - 3][column + 3] == boardNumber) {
                     return true;
                 }
 
                 // Diagonal nach links oben
                 if (row - 3 >= 0 && column - 3 >= 0 &&
-                        board[row - 1][column - 1] == currentPlayer &&
-                        board[row - 2][column - 2] == currentPlayer &&
-                        board[row - 3][column - 3] == currentPlayer) {
+                        board[row - 1][column - 1] == boardNumber &&
+                        board[row - 2][column - 2] == boardNumber &&
+                        board[row - 3][column - 3] == boardNumber) {
                     return true;
                 }
             }

@@ -17,7 +17,7 @@ public class PlayerStatisticService {
 
     private final PlayerStatisticRespository repository;
 
-    public PlayerStatistic getStatistikById(Long id) {
+    public PlayerStatistic getStatisticById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Spieler-Statistik-ID darf nicht null sein");
         }

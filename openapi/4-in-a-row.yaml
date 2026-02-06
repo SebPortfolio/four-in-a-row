@@ -19,7 +19,7 @@ paths:
     '/api/v1/games':
         get:
             summary: Lädt alle oder eine Gruppe von Spielen
-            operationId: getGames
+            operationId: getAllGames
             x-webclient-blocking: true
             tags:
                 - Game
@@ -31,7 +31,7 @@ paths:
                   description: Status des Spiels
             responses:
                 '200':
-                    description: Ok
+                    description: Ok - Alle Spiele abgerufen
                     content:
                         application/json:
                             schema:
@@ -56,7 +56,7 @@ paths:
                             $ref: '#/components/schemas/GameCreateRequest'
             responses:
                 '201':
-                    description: Created
+                    description: Created - Spiel erstellt
                     content:
                         application/json:
                             schema:
@@ -83,7 +83,7 @@ paths:
                 - Game
             responses:
                 '200':
-                    description: Ok
+                    description: Ok - Spiel abgerufen
                     content:
                         application/json:
                             schema:
@@ -94,7 +94,7 @@ paths:
                     $ref: '#/components/responses/InternalServerError'
         delete:
             summary: Löscht ein Spiel anhand seiner Id
-            operationId: deleteGameById
+            operationId: deleteGame
             x-webclient-blocking: true
             tags:
                 - Game
@@ -186,17 +186,108 @@ paths:
     '/api/v1/player':
         get:
             summary: Fetched alle Spieler
-            operationId: getAllPlayer
+            operationId: getAllPlayers
             x-webclient-blocking: true
             tags:
                 - Player
             responses:
                 '200':
-                    description: Ok
+                    description: Ok - Alle Spieler abgerufen
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Player'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+        post:
+            summary: Erstellt einen Spieler
+            operationId: createPlayer
+            x-webclient-blocking: true
+            tags:
+                - Player
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreatePlayerRequest'
+            responses:
+                '201':
+                    description: Created - Spieler erstellt
                     content:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Player'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/player/{playerId}':
+        parameters:
+            - in: path
+              name: playerId
+              required: true
+              schema:
+                  type: integer
+                  format: int64
+              description: Einzigartige Id des Spielers
+        get:
+            summary: Erhalte einen Spieler
+            operationId: getPlayerById
+            x-webclient-blocking: true
+            tags:
+                - Player
+            responses:
+                '200':
+                    description: Ok - Spieler abgerufen
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Player'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+        put:
+            summary: Ersetze einen Spieler
+            operationId: updatePlayer
+            x-webclient-blocking: true
+            tags:
+                - Player
+            requestBody:
+                description: aktualisierter Spieler
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Player'
+            responses:
+                '200':
+                    description: Ok - Spieler aktualisiert
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Player'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+        delete:
+            summary: Löscht einen Spieler anhand seiner Id
+            operationId: deletePlayer
+            x-webclient-blocking: true
+            tags:
+                - Player
+            responses:
+                '204':
+                    description: NoContent - Spieler gelöscht
+                '404':
+                    $ref: '#/components/responses/NotFound'
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
@@ -468,7 +559,7 @@ components:
                 - player1
                 - player2
                 - status
-                - currentPlayer
+                - currentPlayerId
                 - board
             properties:
                 id:
@@ -480,19 +571,15 @@ components:
                 player2:
                     description: Spieler 2
                     $ref: '#/components/schemas/Player'
+                currentPlayerId:
+                    description: Id des Spielers, welcher Spieler am Zug ist
+                    $ref: '#/components/schemas/EntityId'
                 status:
                     description: Status des Spiels
                     $ref: '#/components/schemas/GameStatus'
                 result:
                     description: Ergebnis, wie das Spiel ausgegangen ist
                     $ref: '#/components/schemas/GameResult'
-                currentPlayer:
-                    type: integer
-                    format: int32
-                    minimum: 1
-                    maximum: 2
-                    description: Bestimmung, welcher Spieler am Zug ist
-                    example: 1
                 board:
                     description: Spielfeld
                     $ref: '#/components/schemas/Board'
@@ -523,7 +610,7 @@ components:
 
         Player:
             type: object
-            description: Response eines Spieler-Profils
+            description: Response eines Spieler
             required:
                 - id
                 - username
@@ -544,22 +631,40 @@ components:
                     type: integer
                     format: int32
                     description: Anzahl gespielter Spiele
+                    minimum: 0
                 gamesWon:
                     type: integer
                     format: int32
                     description: Anzahl gewonnener Spiele
+                    minimum: 0
                 gamesLost:
                     type: integer
                     format: int32
                     description: Anzahl verlorener Spiele
+                    minimum: 0
                 gamesSurrendered:
                     type: integer
                     format: int32
                     description: Anzahl aufgegebener Spiele
+                    minimum: 0
                 lastPlayedOn:
                     type: string
                     format: date
                     description: Datum des letzten Spiels
+
+        CreatePlayerRequest:
+            type: object
+            description: Objekt zum Erstellen eines Spielers
+            required:
+                - username
+                - email
+            properties:
+                username:
+                    description: Benutzername des Spielers
+                    $ref: '#/components/schemas/Username'
+                email:
+                    description: Email des Spielers
+                    $ref: '#/components/schemas/Email'
 
         MoveRequest:
             type: object
@@ -569,6 +674,7 @@ components:
             properties:
                 playerId:
                     $ref: '#/components/schemas/EntityId'
+                    description: Spieler-Id des Spielers, der den Zug ausführt
                 column:
                     type: integer
                     format: int32
@@ -695,27 +801,32 @@ components:
         ApiError:
             type: object
             required:
-                - status
-                - error
+                - statusCode
                 - message
                 - timestamp
+                - path
             properties:
-                status:
+                message:
+                    type: string
+                    example: Statistik mit ID 42 nicht gefunden
+                statusCode:
                     type: integer
                     format: int32
                     example: 404
                 error:
                     type: string
                     example: NOT_FOUND
-                message:
-                    type: string
-                    example: Statistik mit ID 42 nicht gefunden
-                path:
-                    type: string
-                    example: /api/statistiken/42
                 timestamp:
                     type: string
                     format: date-time
+                    example: '2026-02-06T17:40:00Z'
+                path:
+                    type: string
+                    example: /api/statistiken/42
+                details:
+                    type: object
+                    additionalProperties: true # Erlaubt die Map<String, Object>
+                    description: 'Zusätzliche Fehlerdetails wie Validierungsmeldungen'
 
     securitySchemes:
         apiKeyCookie:
@@ -728,7 +839,6 @@ components:
             in: header
             name: X-Browser-Id
             description: UUID zur Geräteidentifikation, muss bei jeder Anfrage mitgesendet werden
-
 #security:
 #  - apiKeyCookie: []
 #    browserIdHeader: []

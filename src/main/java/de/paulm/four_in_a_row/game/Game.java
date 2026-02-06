@@ -11,6 +11,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
@@ -46,12 +47,13 @@ public class Game {
     @Column(name = "GAME_RESULT", nullable = true)
     private GameResult result;
 
-    @Column(name = "CURRENT_PLAYER", nullable = false)
-    private byte currentPlayer; // 1 oder 2
+    @ManyToOne
+    @JoinColumn(name = "CURRENT_PLAYER_ID", nullable = false)
+    private PlayerProfile currentPlayer;
 
-    /*
-     * Dank Hibernate 6 und @JdbcTypeCode wird dieses 2D-Array
-     * automatisch als JSON in der H2-Datenbank gespeichert.
+    /**
+     * Spielfeld als 2D-Array, wobei 0 = leer, 1 = Spieler 1, 2 = Spieler 2.
+     * Wird als JSON in der Datenbank gespeichert.
      */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "BOARD")
@@ -66,7 +68,7 @@ public class Game {
         this.player1 = player1;
         this.player2 = player2;
         this.status = GameStatus.IN_PROGRESS;
-        this.currentPlayer = 1; // Spieler 1 beginnt
+        this.currentPlayer = player1; // Spieler 1 beginnt
         this.board = new byte[ROWS][COLUMNS]; // Initialisiere leeres Spielfeld
     }
 }

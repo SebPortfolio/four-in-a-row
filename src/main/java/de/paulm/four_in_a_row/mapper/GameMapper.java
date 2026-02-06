@@ -3,17 +3,26 @@ package de.paulm.four_in_a_row.mapper;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 import de.paulm.four_in_a_row.game.Game;
-import de.paulm.model.GameDto;
+import de.paulm.model.GameWdto;
 
 @Mapper(componentModel = "spring", uses = { PlayerMapper.class })
 public interface GameMapper {
 
-    GameDto toDto(Game game);
+    @Mapping(source = "currentPlayer.id", target = "currentPlayerId")
+    GameWdto toWdto(Game game);
 
-    Game toEntity(GameDto gameDto);
+    @Mapping(target = "currentPlayer", ignore = true)
+    Game toEntity(GameWdto gameDto);
+
+    List<GameWdto> toWdtoList(List<Game> games);
+
+    List<Game> toEntityList(List<GameWdto> gameDtos);
 
     default byte[][] mapBoardFromList(List<List<Integer>> value) {
         if (value == null) {
@@ -47,5 +56,22 @@ public interface GameMapper {
             list.add(rowList);
         }
         return list;
+    }
+
+    @AfterMapping
+    default void linkCurrentPlayer(GameWdto wdto, @MappingTarget Game entity) {
+        if (wdto == null || wdto.getCurrentPlayerId() == null) {
+            return;
+        }
+
+        Long currentPlayerId = wdto.getCurrentPlayerId();
+        if (wdto.getPlayer1().getId().equals(currentPlayerId)) {
+            entity.setCurrentPlayer(entity.getPlayer1());
+        } else if (wdto.getPlayer2().getId().equals(currentPlayerId)) {
+            entity.setCurrentPlayer(entity.getPlayer2());
+        } else {
+            throw new IllegalArgumentException("Current player ID" + currentPlayerId +
+                    " does not match either player in the game");
+        }
     }
 }
