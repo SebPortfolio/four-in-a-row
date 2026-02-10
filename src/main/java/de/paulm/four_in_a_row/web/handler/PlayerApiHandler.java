@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 
 import de.paulm.api.PlayerApiDelegate;
 import de.paulm.four_in_a_row.mapper.PlayerMapper;
@@ -14,7 +14,7 @@ import de.paulm.four_in_a_row.service.PlayerStatisticService;
 import de.paulm.model.CreatePlayerRequestWdto;
 import de.paulm.model.PlayerWdto;
 
-@Service
+@RestController
 public class PlayerApiHandler implements PlayerApiDelegate {
 
     private final PlayerProfileService playerProfileService;

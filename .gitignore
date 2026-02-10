@@ -59,3 +59,6 @@ build/
 
 # OpenAPI-Generator #
 generated/
+
+# H2-DB
+/data

@@ -11,9 +11,9 @@ import de.paulm.four_in_a_row.player.PlayerProfile;
 
 public interface PlayerProfileRepository extends JpaRepository<PlayerProfile, Long> {
 
-    @Query("SELECT p FROM PlayerProfile p LEFT JOIN FETCH p.playerStatistic")
+    @Query("SELECT p FROM PlayerProfile p LEFT JOIN FETCH p.statistic")
     List<PlayerProfile> findAllWithStatistic();
 
-    @Query("SELECT p FROM PlayerProfile p LEFT JOIN FETCH p.playerStatistic WHERE p.id = :id")
+    @Query("SELECT p FROM PlayerProfile p LEFT JOIN FETCH p.statistic WHERE p.id = :id")
     Optional<PlayerProfile> findByIdWithStatistic(@Param("id") Long id);
 }

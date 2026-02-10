@@ -31,8 +31,8 @@ public class PlayerStatistic {
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId // Koppelt diese ID an die ID von playerProfile
-    @JoinColumn(name = "PLAYER_ID")
-    private PlayerProfile playerProfile;
+    @JoinColumn(name = "ID")
+    private PlayerProfile profile;
 
     /**
      * Anzahl aller gespielten Spiele.

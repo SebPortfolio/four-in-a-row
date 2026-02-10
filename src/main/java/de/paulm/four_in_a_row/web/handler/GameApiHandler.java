@@ -3,8 +3,8 @@ package de.paulm.four_in_a_row.web.handler;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import de.paulm.api.GameApiDelegate;
 import de.paulm.four_in_a_row.game.Game;
@@ -17,7 +17,7 @@ import de.paulm.model.GameStatusWdto;
 import de.paulm.model.GameWdto;
 import de.paulm.model.MoveRequestWdto;
 
-@Service
+@RestController
 public class GameApiHandler implements GameApiDelegate {
 
     private final GameService gameService;

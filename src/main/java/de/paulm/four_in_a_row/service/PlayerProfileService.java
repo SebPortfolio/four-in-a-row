@@ -28,6 +28,14 @@ public class PlayerProfileService {
         return repository.findAllWithStatistic();
     }
 
+    public boolean doesPlayerProfileExsistById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Spieler-Profil-ID darf nicht null sein");
+        }
+
+        return repository.existsById(id);
+    }
+
     @NonNull
     @SuppressWarnings("null")
     public PlayerProfile getPlayerProfileById(Long id) {

@@ -14,11 +14,13 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+@Slf4j
 public class PlayerProfile {
 
     @Id
@@ -43,6 +45,21 @@ public class PlayerProfile {
     @Column(name = "REGISTERED_ON", nullable = false)
     private LocalDate registeredOn;
 
-    @OneToOne(mappedBy = "playerProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "profile", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private PlayerStatistic statistic;
+
+    public void setStatistic(PlayerStatistic statistic) {
+        if (statistic == null) {
+            if (this.statistic != null) {
+                log.debug("Entferne Verknüpfung: PlayerStatistic (ID: {}) wird von PlayerProfile (ID: {}) getrennt.",
+                        this.statistic.getId(), this.id);
+                this.statistic.setProfile(null);
+            }
+        } else {
+            log.debug("Setze neue Verknüpfung: PlayerProfile (ID: {}) wird mit PlayerStatistic verknüpft.",
+                    this.id);
+            statistic.setProfile(this);
+        }
+        this.statistic = statistic;
+    }
 }
