@@ -1,7 +1,12 @@
 package de.paulm.four_in_a_row.service;
 
+import static de.paulm.four_in_a_row.repository.specs.GameSpecifications.hasMode;
+import static de.paulm.four_in_a_row.repository.specs.GameSpecifications.hasPlayer;
+import static de.paulm.four_in_a_row.repository.specs.GameSpecifications.hasStatus;
+
 import java.util.List;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +18,7 @@ import de.paulm.four_in_a_row.game.GameResult;
 import de.paulm.four_in_a_row.game.GameStatus;
 import de.paulm.four_in_a_row.player.PlayerProfile;
 import de.paulm.four_in_a_row.repository.GameRepository;
+import de.paulm.four_in_a_row.repository.specs.GameSpecifications;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,16 +39,43 @@ public class GameService {
                 .orElseThrow(() -> new GameNotFoundException(id));
     }
 
-    public List<Game> getAllGames(GameStatus gameStatus) {
-        if (gameStatus == null) {
-            return repository.findAll();
-        }
-        return repository.findAllByStatus(gameStatus);
+    /**
+     * Sucht nach Spielen basierend auf optionalen Filterkriterien.
+     * <p>
+     * Diese Methode nutzt die JPA Criteria API (Specifications), um die
+     * Datenbankabfrage
+     * dynamisch zur Laufzeit aufzubauen. Parameter, die {@code null} sind, werden
+     * bei
+     * der Filterung ignoriert (entspricht einem "Alle anzeigen"-Filter).
+     * </p>
+     *
+     * @param status   Der zu filternde Spielstatus (z.B. {@code IN_PROGRESS}).
+     *                 Bei {@code null} werden Spiele aller Status zurückgegeben.
+     * @param mode     Der Spielmodus (z.B. {@code SINGLEPLAYER}).
+     *                 Bei {@code null} findet keine Filterung nach Modus statt.
+     * @param playerId Die ID eines Spielers. Es wird geprüft, ob dieser Spieler
+     *                 entweder
+     *                 als {@code player1} oder {@code player2} im Spiel registriert
+     *                 ist.
+     *                 Bei {@code null} werden Spiele unabhängig von den Teilnehmern
+     *                 geladen.
+     * @return Eine Liste der gefundenen {@link Game}-Entitäten, die alle Kriterien
+     *         erfüllen.
+     *         Falls keine Spiele gefunden werden, wird eine leere Liste
+     *         zurückgegeben.
+     * @see GameSpecifications
+     */
+    public List<Game> findGames(GameStatus status, GameMode mode, Long playerId) {
+        return repository.findAll(
+                Specification.<Game>unrestricted()
+                        .and(hasStatus(status))
+                        .and(hasMode(mode))
+                        .and(hasPlayer(playerId)));
     }
 
-    public List<Game> getPausedGamesForPlayer(Long playerId) {
-        PlayerProfile player = playerProfileService.getPlayerProfileById(playerId);
-        return repository.findAllByStatusAndPlayer1OrPlayer2(GameStatus.PAUSED, player, player);
+    public List<Game> getPausedGamesForPlayer(Long playerId, GameMode gameMode) {
+        playerProfileService.getPlayerProfileById(playerId); // sicherstellen, dass der Spieler existiert
+        return this.findGames(GameStatus.PAUSED, gameMode, playerId);
     }
 
     @Transactional

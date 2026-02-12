@@ -26,9 +26,22 @@ paths:
             parameters:
                 - in: query
                   name: gameStatus
+                  required: false
                   schema:
                       $ref: '#/components/schemas/GameStatus'
                   description: Status des Spiels
+                - in: query
+                  name: gameMode
+                  required: false
+                  schema:
+                      $ref: '#/components/schemas/GameMode'
+                  description: Spielmodus des Spiels
+                - in: query
+                  name: playerId
+                  required: false
+                  schema:
+                      $ref: '#/components/schemas/EntityId'
+                  description: Id eines Spielers des Spiels
             responses:
                 '200':
                     description: Ok - Alle Spiele abgerufen

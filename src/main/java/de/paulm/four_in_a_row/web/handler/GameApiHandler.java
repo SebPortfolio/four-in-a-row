@@ -64,11 +64,15 @@ public class GameApiHandler implements GameApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<GameWdto>> getAllGames(@RequestParam GameStatusWdto gameStatusWdto) {
-        GameStatus gameStatus = gameStatusMapper.fromWdto(gameStatusWdto);
-        List<Game> games = gameService.getAllGames(gameStatus);
-        List<GameWdto> gameDtos = gameMapper.toWdtoList(games);
-        return ResponseEntity.ok(gameDtos);
+    public ResponseEntity<List<GameWdto>> getAllGames(
+            GameStatusWdto gameStatusWdto,
+            GameModeWdto gameModeWdto,
+            Long playerId) {
+        GameStatus status = (gameStatusWdto != null) ? gameStatusMapper.fromWdto(gameStatusWdto) : null;
+        GameMode mode = (gameModeWdto != null) ? gameModeMapper.fromWdto(gameModeWdto) : null;
+
+        List<Game> foundGames = gameService.findGames(status, mode, playerId);
+        return ResponseEntity.ok(gameMapper.toWdtoList(foundGames));
     }
 
     @Override
