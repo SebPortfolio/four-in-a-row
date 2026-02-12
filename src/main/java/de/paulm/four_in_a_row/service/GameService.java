@@ -126,7 +126,7 @@ public class GameService {
     }
 
     @Transactional
-    public void makeMove(Long gameId, byte column) {
+    public Game makeMove(Long gameId, byte column) {
         Game game = this.getGameById(gameId);
         byte[][] board = game.getBoard();
 
@@ -140,6 +140,8 @@ public class GameService {
             // Spiel geht weiter
             game = this.changeToNextPlayer(game);
         }
+
+        return game;
     }
 
     private boolean checkAndHandleGameEnd(Game game) {

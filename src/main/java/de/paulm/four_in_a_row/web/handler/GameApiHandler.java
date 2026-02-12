@@ -51,16 +51,13 @@ public class GameApiHandler implements GameApiDelegate {
     @Override
     public ResponseEntity<GameWdto> getGameById(Long gameId) {
         Game game = gameService.getGameById(gameId);
-        GameWdto gameDto = gameMapper.toWdto(game);
-        return ResponseEntity.ok(gameDto);
+        return ResponseEntity.ok(gameMapper.toWdto(game));
     }
 
     @Override
     public ResponseEntity<GameWdto> makeMove(Long gameId, MoveRequestWdto moveRequest) {
-        gameService.makeMove(gameId, moveRequest.getColumn().byteValue());
-        Game updatedGame = gameService.getGameById(gameId);
-        GameWdto gameDto = gameMapper.toWdto(updatedGame);
-        return ResponseEntity.ok(gameDto);
+        Game updatedGame = gameService.makeMove(gameId, moveRequest.getColumn().byteValue());
+        return ResponseEntity.ok(gameMapper.toWdto(updatedGame));
     }
 
     @Override
