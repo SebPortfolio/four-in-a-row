@@ -696,121 +696,17 @@ components:
                     maximum: 6 # später bei variablen Spielfeldgrößen problematisch
                     description: Spalte in die der Spielstein fallen gelassen wird
 
-        BrowserId:
-            type: string
-            format: uuid
-            description: Eindeutige UUID des Browsers / Geräts
-            example: '1bf93699-ee11-4a4a-a4a4-be7606b2de4d'
-
-        Email:
-            type: string
-            format: email
-            description: E-Mail Adresse
-            example: 'max.musterman@gmail.com'
-        Passwort:
-            type: string
-            format: password
-            description: Passwort
-            #pattern: "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[?!%&§@€$'*+<>\\.,_-])[A-Za-z\\d?!%&§@€$'*+<>\\.,_-]{8,}$"
-
-        RegisterRequest:
-            type: object
-            required:
-                - benutzername
-                - email
-                - passwort
-            properties:
-                benutzername:
-                    description: Benutzername eines neuen Nutzers
-                    $ref: '#/components/schemas/Username'
-                email:
-                    description: E-Mail eines neuen Nutzers
-                    $ref: '#/components/schemas/Email'
-                passwort:
-                    description: Passwort eines neuen Nutzers
-                    $ref: '#/components/schemas/Passwort'
-        RegisterResponse:
-            type: object
-            required:
-                - benutzername
-                - email
-            properties:
-                benutzername:
-                    description: Benutzername des neuen Nutzers
-                    $ref: '#/components/schemas/Username'
-                email:
-                    description: E-Mail des neuen Nutzers
-                    $ref: '#/components/schemas/Email'
-
-        LoginRequest:
-            type: object
-            required:
-                - benutzernameOderEmail
-                - passwort
-            properties:
-                benutzernameOderEmail:
-                    description: Benutzername oder E-Mail des Nutzers
-                    anyOf:
-                        - $ref: '#/components/schemas/Username'
-                        - $ref: '#/components/schemas/Email'
-                passwort:
-                    description: Passwort des Nutzers
-                    $ref: '#/components/schemas/Passwort'
-        LoginResponse:
-            type: object
-            required:
-                - benutzername
-                - rollen
-                - rechte
-            properties:
-                benutzername:
-                    description: Benutzername des Nutzers
-                    $ref: '#/components/schemas/Username'
-                pictureLink:
-                    description: Link zu einem Bild als Profilbild des Nutzers
-                    $ref: '#/components/schemas/PictureLink'
-
-        PictureLink:
-            description: Link zu einem Bild
-            type: string
-            format: uri
-
-        Token:
-            type: object
-            properties:
-                token:
-                    type: string
-                    #pattern: "^[a-zA-Z0-9]{32}$"
-                #accountId:
-                #  $ref: "#/components/schemas/AccountId"
-
-        BenutzerId:
-            type: integer
-            format: int32
-            description: Einzigartige Id des Benutzers
-            example: 1
         Username:
             type: string
             description: Benutzername
             #pattern: "^(?=.{3,30}$)(?![_.-])(?!.*[_.-]{2})[a-zA-Z0-9._-]+(?<![_.-])$"
             example: Max-Mustermann.Der_Erste12
 
-        Steam64:
-            type: integer
-            description: Einzigartige Steam64-Id
-            example: 76561199023920905
-            minimum: 7656000000000
-            maximum: 7656999999999
-
-        DiscordBenutzerId: # TODO: ggf. als Ersatz für Discord benutzername, zumindest Rrgänzung
-            type: integer
-            description: Einzigartige Discord-BenutzerId
-
-        DiscordBenutzerName:
+        Email:
             type: string
-            #pattern: "^(?!.*\\.\\.)(?![._])[a-z0-9._]{2,32}(?<![._])$"
-            example: 'paul.mcwater'
-            description: Discord-Benutzername
+            format: email
+            description: E-Mail Adresse
+            example: 'max.musterman@gmail.com'
 
         ApiError:
             type: object
@@ -841,18 +737,123 @@ components:
                     type: object
                     additionalProperties: true # Erlaubt die Map<String, Object>
                     description: 'Zusätzliche Fehlerdetails wie Validierungsmeldungen'
+#    BrowserId:
+#      type: string
+#      format: uuid
+#      description: Eindeutige UUID des Browsers / Geräts
+#      example: "1bf93699-ee11-4a4a-a4a4-be7606b2de4d"
 
-    securitySchemes:
-        apiKeyCookie:
-            type: apiKey
-            in: cookie
-            name: X-Api-Key
-            description: Langlebiger API Key als HttpOnly-Cookie (90 Tage).
-        browserIdHeader:
-            type: apiKey
-            in: header
-            name: X-Browser-Id
-            description: UUID zur Geräteidentifikation, muss bei jeder Anfrage mitgesendet werden
+#    Passwort:
+#      type: string
+#      format: password
+#      description: Passwort
+#      #pattern: "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[?!%&§@€$'*+<>\\.,_-])[A-Za-z\\d?!%&§@€$'*+<>\\.,_-]{8,}$"
+
+#    Steam64:
+#      type: integer
+#      description: Einzigartige Steam64-Id
+#      example: 76561199023920905
+#      minimum: 7656000000000
+#      maximum: 7656999999999
+
+#    DiscordBenutzerId: # TODO: ggf. als Ersatz für Discord benutzername, zumindest Rrgänzung
+#      type: integer
+#      description: Einzigartige Discord-BenutzerId
+
+#    DiscordBenutzerName:
+#      type: string
+#      #pattern: "^(?!.*\\.\\.)(?![._])[a-z0-9._]{2,32}(?<![._])$"
+#      example: "paul.mcwater"
+#      description: Discord-Benutzername
+
+#    RegisterRequest:
+#      type: object
+#      required:
+#        - benutzername
+#        - email
+#        - passwort
+#      properties:
+#        benutzername:
+#          description: Benutzername eines neuen Nutzers
+#          $ref: "#/components/schemas/Username"
+#        email:
+#          description: E-Mail eines neuen Nutzers
+#          $ref: "#/components/schemas/Email"
+#        passwort:
+#          description: Passwort eines neuen Nutzers
+#          $ref: "#/components/schemas/Passwort"
+#    RegisterResponse:
+#      type: object
+#      required:
+#        - benutzername
+#        - email
+#      properties:
+#        benutzername:
+#          description: Benutzername des neuen Nutzers
+#          $ref: "#/components/schemas/Username"
+#        email:
+#          description: E-Mail des neuen Nutzers
+#          $ref: "#/components/schemas/Email"
+
+#    LoginRequest:
+#      type: object
+#      required:
+#        - benutzernameOderEmail
+#        - passwort
+#      properties:
+#        benutzernameOderEmail:
+#          description: Benutzername oder E-Mail des Nutzers
+#          anyOf:
+#            - $ref: "#/components/schemas/Username"
+#            - $ref: "#/components/schemas/Email"
+#        passwort:
+#          description: Passwort des Nutzers
+#          $ref: "#/components/schemas/Passwort"
+#    LoginResponse:
+#      type: object
+#      required:
+#        - benutzername
+#        - rollen
+#        - rechte
+#      properties:
+#        benutzername:
+#          description: Benutzername des Nutzers
+#          $ref: "#/components/schemas/Username"
+#        pictureLink:
+#          description: Link zu einem Bild als Profilbild des Nutzers
+#          $ref: "#/components/schemas/PictureLink"
+
+#    PictureLink:
+#      description: Link zu einem Bild
+#      type: string
+#      format: uri
+
+#    Token:
+#      type: object
+#      properties:
+#        token:
+#          type: string
+#          #pattern: "^[a-zA-Z0-9]{32}$"
+#        #accountId:
+#        #  $ref: "#/components/schemas/AccountId"
+
+#    BenutzerId:
+#      type: integer
+#      format: int32
+#      description: Einzigartige Id des Benutzers
+#      example: 1
+
+#  securitySchemes:
+#    apiKeyCookie:
+#      type: apiKey
+#      in: cookie
+#      name: X-Api-Key
+#      description: Langlebiger API Key als HttpOnly-Cookie (90 Tage).
+#    browserIdHeader:
+#      type: apiKey
+#      in: header
+#      name: X-Browser-Id
+#      description: UUID zur Geräteidentifikation, muss bei jeder Anfrage mitgesendet werden
 #security:
 #  - apiKeyCookie: []
 #    browserIdHeader: []
