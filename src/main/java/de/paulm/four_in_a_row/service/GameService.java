@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import de.paulm.four_in_a_row.domain.exceptions.ColumnFullException;
 import de.paulm.four_in_a_row.domain.exceptions.GameNotFoundException;
 import de.paulm.four_in_a_row.game.Game;
+import de.paulm.four_in_a_row.game.GameMode;
 import de.paulm.four_in_a_row.game.GameResult;
 import de.paulm.four_in_a_row.game.GameStatus;
 import de.paulm.four_in_a_row.player.PlayerProfile;
@@ -45,10 +46,10 @@ public class GameService {
     }
 
     @Transactional
-    public Game createGame(Long playerProfileId1, Long playerProfileId2) {
+    public Game createGame(Long playerProfileId1, Long playerProfileId2, GameMode gameMode) {
         PlayerProfile player1 = playerProfileService.getPlayerProfileById(playerProfileId1);
         PlayerProfile player2 = playerProfileService.getPlayerProfileById(playerProfileId2);
-        Game game = new Game(player1, player2);
+        Game game = new Game(player1, player2, gameMode);
         return repository.save(game);
     }
 

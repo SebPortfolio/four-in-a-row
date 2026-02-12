@@ -557,6 +557,7 @@ components:
             required:
                 - player1Id
                 - player2Id
+                - gameMode
             properties:
                 player1Id:
                     description: Id des ersten Spielers
@@ -564,6 +565,9 @@ components:
                 player2Id:
                     description: Id des zweiten Spielers
                     $ref: '#/components/schemas/EntityId'
+                gameMode:
+                    description: ausgewählter Spielmodus
+                    $ref: '#/components/schemas/GameMode'
 
         Game:
             type: object
@@ -575,6 +579,7 @@ components:
                 - status
                 - currentPlayerId
                 - board
+                - mode
             properties:
                 id:
                     description: Id des Spiels
@@ -594,6 +599,9 @@ components:
                 result:
                     description: Ergebnis, wie das Spiel ausgegangen ist
                     $ref: '#/components/schemas/GameResult'
+                mode:
+                    description: Spielmodus, dem das Spiel zugeordnet ist
+                    $ref: '#/components/schemas/GameMode'
                 board:
                     description: Spielfeld
                     $ref: '#/components/schemas/Board'
@@ -621,6 +629,14 @@ components:
                 - PLAYER_1_WON
                 - PLAYER_2_WON
                 - DRAW
+
+        GameMode:
+            type: string
+            description: Spielmodus (Singleplayer etc.)
+            enum:
+                - SINGLEPLAYER
+                - LOCAL_MULTIPLAYER
+                - ONLINE_MULTIPLAYER
 
         Player:
             type: object
