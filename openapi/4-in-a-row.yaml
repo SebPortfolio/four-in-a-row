@@ -183,13 +183,27 @@ paths:
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
-    '/api/v1/player':
+    '/api/v1/players':
         get:
             summary: Fetched alle Spieler
             operationId: getAllPlayers
             x-webclient-blocking: true
             tags:
                 - Player
+            parameters:
+                - in: query
+                  name: term
+                  required: false
+                  schema:
+                      type: string
+                  description: Teil des username der Spieler
+                - in: query
+                  name: limit
+                  required: false
+                  schema:
+                      type: integer
+                      default: 20
+                  description: Begrenzt die Anzahl der Treffer
             responses:
                 '200':
                     description: Ok - Alle Spieler abgerufen
@@ -225,7 +239,7 @@ paths:
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
-    '/api/v1/player/{playerId}':
+    '/api/v1/players/{playerId}':
         parameters:
             - in: path
               name: playerId

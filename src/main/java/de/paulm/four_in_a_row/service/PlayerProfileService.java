@@ -1,10 +1,11 @@
 package de.paulm.four_in_a_row.service;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import de.paulm.four_in_a_row.domain.exceptions.IllegalEmailException;
 import de.paulm.four_in_a_row.domain.exceptions.IllegalUsernameException;
@@ -12,13 +13,23 @@ import de.paulm.four_in_a_row.domain.exceptions.PlayerProfileNotFoundException;
 import de.paulm.four_in_a_row.player.PlayerProfile;
 import de.paulm.four_in_a_row.repository.PlayerProfileRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class PlayerProfileService {
 
     private final PlayerProfileRepository repository;
+
+    // TODO: limit implementieren
+    public List<PlayerProfile> findPlayers(String term, Integer limit) {
+        if (term == null || term.isBlank()) {
+            return repository.findAll();
+        }
+
+        // TODO: seperaten Endpunkt als getPlayerForBackendSelect
+
+        return repository.findByUsernameContainingIgnoreCase(term);
+    }
 
     public List<PlayerProfile> getAllPlayerProfiles() {
         return repository.findAll();
@@ -97,7 +108,7 @@ public class PlayerProfileService {
         PlayerProfile profile = new PlayerProfile();
         profile.setUsername(username);
         profile.setEmail(email);
-        profile.setRegisteredOn(new Date().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
+        profile.setRegisteredOn(LocalDate.now());
         return profile;
     }
 

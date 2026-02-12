@@ -16,4 +16,6 @@ public interface PlayerProfileRepository extends JpaRepository<PlayerProfile, Lo
 
     @Query("SELECT p FROM PlayerProfile p LEFT JOIN FETCH p.statistic WHERE p.id = :id")
     Optional<PlayerProfile> findByIdWithStatistic(@Param("id") Long id);
+
+    List<PlayerProfile> findByUsernameContainingIgnoreCase(String username);
 }

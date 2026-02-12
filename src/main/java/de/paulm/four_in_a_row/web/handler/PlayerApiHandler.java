@@ -11,6 +11,7 @@ import de.paulm.four_in_a_row.mapper.PlayerMapper;
 import de.paulm.four_in_a_row.player.PlayerProfile;
 import de.paulm.four_in_a_row.service.PlayerProfileService;
 import de.paulm.four_in_a_row.service.PlayerStatisticService;
+import de.paulm.four_in_a_row.web.util.ResourceLocationHelper;
 import de.paulm.model.CreatePlayerRequestWdto;
 import de.paulm.model.PlayerWdto;
 
@@ -29,10 +30,10 @@ public class PlayerApiHandler implements PlayerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<List<PlayerWdto>> getAllPlayers() {
-        List<PlayerProfile> profiles = playerProfileService.getAllPlayerProfilesWithStatistic();
-        List<PlayerWdto> playerDtos = playerMapper.toWdtoList(profiles);
-        return ResponseEntity.ok(playerDtos);
+    public ResponseEntity<List<PlayerWdto>> getAllPlayers(String term, Integer limit) {
+        List<PlayerProfile> profiles = playerProfileService.findPlayers(term, limit);
+
+        return ResponseEntity.ok(playerMapper.toWdtoList(profiles));
     }
 
     @Override
@@ -49,7 +50,8 @@ public class PlayerApiHandler implements PlayerApiDelegate {
         PlayerProfile createdProfile = playerProfileService.createPlayerProfile(createPlayerRequestWdto.getUsername(),
                 createPlayerRequestWdto.getEmail());
         PlayerWdto playerWdto = playerMapper.toWdto(createdProfile);
-        return ResponseEntity.status(HttpStatus.CREATED).body(playerWdto);
+        var locaton = ResourceLocationHelper.create(playerWdto, "playerId");
+        return ResponseEntity.created(locaton).body(playerWdto);
     }
 
     @Override

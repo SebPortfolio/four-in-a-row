@@ -21,7 +21,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
         request.setAttribute("startTime", System.currentTimeMillis());
-        log.info("{}>> Incoming Request:{} {}{} {}{}{}",
+        log.info("\n{}>> Incoming Request:{} {}{} {}{}{}",
                 CYAN, RESET, YELLOW, request.getMethod(), GREEN, request.getRequestURI(), RESET);
         return true;
     }
@@ -32,7 +32,7 @@ public class LoggingInterceptor implements HandlerInterceptor {
             throws Exception {
         Long startTime = (Long) request.getAttribute("startTime");
         Long duration = System.currentTimeMillis() - startTime;
-        log.info("{}Completed request:{} {} {}, Status: {}, Duration: {}ms", CYAN, RESET, request.getMethod(),
+        log.info("\n{}Completed request:{} {} {}, Status: {}, Duration: {}ms", CYAN, RESET, request.getMethod(),
                 request.getRequestURI(),
                 response.getStatus(), duration);
     }
