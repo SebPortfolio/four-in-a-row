@@ -11,6 +11,7 @@ import de.paulm.four_in_a_row.domain.exceptions.IllegalEmailException;
 import de.paulm.four_in_a_row.domain.exceptions.IllegalUsernameException;
 import de.paulm.four_in_a_row.domain.exceptions.PlayerProfileNotFoundException;
 import de.paulm.four_in_a_row.player.PlayerProfile;
+import de.paulm.four_in_a_row.player.PlayerStatistic;
 import de.paulm.four_in_a_row.repository.PlayerProfileRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class PlayerProfileService {
 
     private final PlayerProfileRepository repository;
+    private final PlayerStatisticService statisticService;
 
     // TODO: limit implementieren
     public List<PlayerProfile> findPlayers(String term, Integer limit) {
@@ -96,15 +98,14 @@ public class PlayerProfileService {
         if (username.length() < 3) {
             throw new IllegalUsernameException(username, "Benutzername muss mindestens 3 Zeichen haben");
         }
-        PlayerProfile profile = buildNewPlayerProfile(username, email);
-        if (profile == null) {
-            throw new RuntimeException("Fehler beim Erstellen des Spielerprofils");
-        }
+        PlayerProfile profile = buildProfile(username, email);
+        PlayerStatistic statistic = statisticService.createStatistic(profile);
+        profile.setStatistic(statistic);
 
         return repository.save(profile);
     }
 
-    private PlayerProfile buildNewPlayerProfile(String username, String email) {
+    private PlayerProfile buildProfile(String username, String email) {
         PlayerProfile profile = new PlayerProfile();
         profile.setUsername(username);
         profile.setEmail(email);

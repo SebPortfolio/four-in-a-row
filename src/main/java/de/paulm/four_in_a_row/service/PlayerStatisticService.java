@@ -6,6 +6,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import de.paulm.four_in_a_row.domain.exceptions.PlayerStatisticNotFoundException;
 import de.paulm.four_in_a_row.player.PlayerProfile;
 import de.paulm.four_in_a_row.player.PlayerStatistic;
 import de.paulm.four_in_a_row.repository.PlayerStatisticRespository;
@@ -16,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 public class PlayerStatisticService {
 
     private final PlayerStatisticRespository playerStatisticRepository;
-    private final PlayerProfileService playerProfileService;
 
     @Transactional
     public PlayerStatistic getStatisticById(Long id) {
@@ -24,13 +24,11 @@ public class PlayerStatisticService {
             throw new IllegalArgumentException("Spieler-Statistik-ID darf nicht null sein");
         }
         return playerStatisticRepository.findById(id)
-                .orElseGet(() -> {
-                    return createNewStatisticIfProfileExists(id);
-                });
+                .orElseThrow(() -> new PlayerStatisticNotFoundException(id));
     }
 
-    private PlayerStatistic createNewStatisticIfProfileExists(Long id) {
-        PlayerProfile profile = playerProfileService.getPlayerProfileById(id);
+    @Transactional
+    public PlayerStatistic createStatistic(PlayerProfile profile) {
         PlayerStatistic newStatistic = buildStatistic(profile);
         profile.setStatistic(newStatistic);
 
