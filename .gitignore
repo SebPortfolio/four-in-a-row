@@ -62,3 +62,6 @@ generated/
 
 # H2-DB
 /data
+
+# Configuration
+src/main/resources/application-local.properties

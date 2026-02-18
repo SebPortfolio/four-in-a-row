@@ -1,0 +1,107 @@
+package de.paulm.four_in_a_row.domain.security;
+
+import java.time.LocalDateTime;
+import java.util.Set;
+
+import org.springframework.security.core.userdetails.UserDetails;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Entity
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "APP_USER") // User ist SQL-Keyword
+public class User implements UserDetails {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
+    private Long id;
+
+    @NotNull(message = "E-Mail darf nicht null sein")
+    @Size(min = 5, message = "E-Mail muss mindestens 5 Zeichen haben")
+    @Column(name = "EMAIL", nullable = false, unique = true)
+    private String email;
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @JsonIgnore
+    @Column(name = "PASSWORD", nullable = false)
+    private String password;
+
+    @Column(name = "LAST_PASSWORD_CHANGE")
+    private LocalDateTime lastPasswordChangeAt;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "USER_ROLES", joinColumns = @JoinColumn(name = "USER_ID"))
+    @Enumerated(EnumType.STRING)
+    private Set<Role> authorities; // Roles are simplified for illustration
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "STATUS")
+    @Builder.Default
+    private UserStatus status = UserStatus.UNVERIFIED;
+
+    @Column(name = "BANNED_UNTIL")
+    private LocalDateTime bannedUntil;
+
+    @Column(name = "INTERNAL_BAN_NOTE")
+    private String internalBanNote; // Für das Admin-Team (was genau ist passiert?)
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "BAN_REASON")
+    private BanReason banReason; // für User
+
+    @Override
+    public boolean isEnabled() {
+        return status == UserStatus.ACTIVE;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        if (status == UserStatus.PERMANENT_BANNED) {
+            return false;
+        }
+        if (status == UserStatus.BANNED) {
+            return bannedUntil != null && bannedUntil.isBefore(LocalDateTime.now());
+        }
+
+        return status != UserStatus.DELETED;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return status != UserStatus.DELETED;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+}
