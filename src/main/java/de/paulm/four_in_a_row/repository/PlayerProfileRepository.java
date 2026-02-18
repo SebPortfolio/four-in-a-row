@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import de.paulm.four_in_a_row.player.PlayerProfile;
+import de.paulm.four_in_a_row.domain.player.PlayerProfile;
 
 public interface PlayerProfileRepository extends JpaRepository<PlayerProfile, Long> {
 
@@ -17,5 +17,7 @@ public interface PlayerProfileRepository extends JpaRepository<PlayerProfile, Lo
     @Query("SELECT p FROM PlayerProfile p LEFT JOIN FETCH p.statistic WHERE p.id = :id")
     Optional<PlayerProfile> findByIdWithStatistic(@Param("id") Long id);
 
-    List<PlayerProfile> findByUsernameContainingIgnoreCase(String username);
+    List<PlayerProfile> findByDisplayNameContainingIgnoreCase(String displayName);
+
+    Optional<PlayerProfile> findByUserId(Long userId);
 }

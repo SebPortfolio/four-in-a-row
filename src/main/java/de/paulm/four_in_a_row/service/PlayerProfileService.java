@@ -7,11 +7,10 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import de.paulm.four_in_a_row.domain.exceptions.IllegalEmailException;
-import de.paulm.four_in_a_row.domain.exceptions.IllegalUsernameException;
+import de.paulm.four_in_a_row.domain.exceptions.IllegalDisplayNameException;
 import de.paulm.four_in_a_row.domain.exceptions.PlayerProfileNotFoundException;
-import de.paulm.four_in_a_row.player.PlayerProfile;
-import de.paulm.four_in_a_row.player.PlayerStatistic;
+import de.paulm.four_in_a_row.domain.player.PlayerProfile;
+import de.paulm.four_in_a_row.domain.player.PlayerStatistic;
 import de.paulm.four_in_a_row.repository.PlayerProfileRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -28,9 +27,9 @@ public class PlayerProfileService {
             return repository.findAll();
         }
 
-        // TODO: seperaten Endpunkt als getPlayerForBackendSelect
+        // TODO: seperaten Endpunkt als getPlayerForBackendSelect ?!
 
-        return repository.findByUsernameContainingIgnoreCase(term);
+        return repository.findByDisplayNameContainingIgnoreCase(term);
     }
 
     public List<PlayerProfile> getAllPlayerProfiles() {
@@ -41,7 +40,7 @@ public class PlayerProfileService {
         return repository.findAllWithStatistic();
     }
 
-    public boolean doesPlayerProfileExsistById(Long id) {
+    public boolean doesPlayerProfileExsistById(Long id) throws IllegalArgumentException {
         if (id == null) {
             throw new IllegalArgumentException("Spieler-Profil-ID darf nicht null sein");
         }
@@ -51,71 +50,56 @@ public class PlayerProfileService {
 
     @NonNull
     @SuppressWarnings("null")
-    public PlayerProfile getPlayerProfileById(Long id) {
+    public PlayerProfile getPlayerProfileById(Long id) throws PlayerProfileNotFoundException, IllegalArgumentException {
         if (id == null) {
             throw new IllegalArgumentException("Spieler-Profil-ID darf nicht null sein");
         }
         return repository.findById(id)
-                .orElseThrow(() -> new PlayerProfileNotFoundException(id));
+                .orElseThrow(() -> new PlayerProfileNotFoundException(id, "id"));
     }
 
     @NonNull
     @SuppressWarnings("null")
-    public PlayerProfile getPlayerProfileByIdWithStatistic(Long id) {
+    public PlayerProfile getPlayerProfileByIdWithStatistic(Long id)
+            throws PlayerProfileNotFoundException, IllegalArgumentException {
         if (id == null) {
             throw new IllegalArgumentException("Spieler-Profil-ID darf nicht null sein");
         }
         return repository.findByIdWithStatistic(id)
-                .orElseThrow(() -> new PlayerProfileNotFoundException(id));
+                .orElseThrow(() -> new PlayerProfileNotFoundException(id, "id"));
     }
 
     @Transactional
-    public void editUsername(Long playerId, String newName) {
+    public void editDisplayName(Long playerId, String newName) throws IllegalArgumentException {
         PlayerProfile profile = this.getPlayerProfileById(playerId);
         if (newName == null || newName.isBlank()) {
-            throw new IllegalUsernameException(newName, "Benutzername darf nicht leer sein");
+            throw new IllegalDisplayNameException(newName, "Anzeigename darf nicht leer sein");
         }
         if (newName.length() < 3) {
-            throw new IllegalUsernameException(newName, "Benutzername muss mindestens 3 Zeichen haben");
+            throw new IllegalDisplayNameException(newName, "Anzeigename muss mindestens 3 Zeichen haben");
         }
-        profile.setUsername(newName);
+        profile.setDisplayName(newName);
     }
 
     @Transactional
-    public void editEmail(Long playerId, String newEmail) {
-        PlayerProfile profile = this.getPlayerProfileById(playerId);
-        if (newEmail == null || !newEmail.matches(".+@.+\\..+")) {
-            throw new IllegalEmailException(newEmail, "ungültiges Format");
-        }
-        profile.setEmail(newEmail);
-    }
-
-    @Transactional
-    public PlayerProfile createPlayerProfile(String username, String email) {
-        if (username == null || username.isBlank()) {
-            throw new IllegalUsernameException(username, "Benutzername darf nicht leer sein");
-        }
-        if (username.length() < 3) {
-            throw new IllegalUsernameException(username, "Benutzername muss mindestens 3 Zeichen haben");
-        }
-        PlayerProfile profile = buildProfile(username, email);
-        PlayerStatistic statistic = statisticService.createStatistic(profile);
-        profile.setStatistic(statistic);
+    public PlayerProfile createProfileForUser(Long userId, String displayName) {
+        PlayerProfile profile = this.buildInitalPlayerProfile(userId, displayName);
+        PlayerStatistic initialStats = statisticService.buildInitialStatistic(profile);
+        profile.setStatistic(initialStats);
 
         return repository.save(profile);
     }
 
-    private PlayerProfile buildProfile(String username, String email) {
-        PlayerProfile profile = new PlayerProfile();
-        profile.setUsername(username);
-        profile.setEmail(email);
-        profile.setRegisteredOn(LocalDate.now());
-        return profile;
+    private PlayerProfile buildInitalPlayerProfile(Long userId, String displayName) {
+        return PlayerProfile.builder()
+                .userId(userId)
+                .displayName(displayName)
+                .registeredOn(LocalDate.now())
+                .build();
     }
 
-    @Transactional
-    public void deletePlayerProfile(Long playerId) {
-        PlayerProfile profile = this.getPlayerProfileById(playerId);
-        repository.delete(profile);
+    public PlayerProfile getProfileByUserId(Long userId) {
+        return repository.findByUserId(userId)
+                .orElseThrow(() -> new PlayerProfileNotFoundException(userId, "userId"));
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import de.paulm.four_in_a_row.player.PlayerStatistic;
+import de.paulm.four_in_a_row.domain.player.PlayerStatistic;
 
 public interface PlayerStatisticRespository extends JpaRepository<PlayerStatistic, Long> {
 

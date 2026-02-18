@@ -1,4 +1,4 @@
-package de.paulm.four_in_a_row.player;
+package de.paulm.four_in_a_row.domain.player;
 
 import java.time.LocalDate;
 
@@ -11,17 +11,23 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.PastOrPresent;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Builder
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "PLAYER_STATISTIC")
 @Check(constraints = "GAMES_LOST >= GAMES_SURRENDERED AND TOTAL_GAMES >= (GAMES_WON + GAMES_LOST)")
 public class PlayerStatistic {
 

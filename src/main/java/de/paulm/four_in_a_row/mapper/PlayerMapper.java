@@ -5,7 +5,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import de.paulm.four_in_a_row.player.PlayerProfile;
+import de.paulm.four_in_a_row.domain.player.PlayerProfile;
 import de.paulm.model.PlayerWdto;
 
 @Mapper(componentModel = "spring")
@@ -18,7 +18,6 @@ public interface PlayerMapper {
     @Mapping(source = "statistic.lastPlayedOn", target = "lastPlayedOn")
     PlayerWdto toWdto(PlayerProfile playerProfile);
 
-    @Mapping(ignore = true, target = "email")
     @Mapping(source = "totalGames", target = "statistic.totalGames")
     @Mapping(source = "gamesWon", target = "statistic.gamesWon")
     @Mapping(source = "gamesLost", target = "statistic.gamesLost")

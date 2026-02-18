@@ -2,13 +2,12 @@ package de.paulm.four_in_a_row.service;
 
 import java.time.LocalDate;
 
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import de.paulm.four_in_a_row.domain.exceptions.PlayerStatisticNotFoundException;
-import de.paulm.four_in_a_row.player.PlayerProfile;
-import de.paulm.four_in_a_row.player.PlayerStatistic;
+import de.paulm.four_in_a_row.domain.player.PlayerProfile;
+import de.paulm.four_in_a_row.domain.player.PlayerStatistic;
 import de.paulm.four_in_a_row.repository.PlayerStatisticRespository;
 import lombok.RequiredArgsConstructor;
 
@@ -19,20 +18,12 @@ public class PlayerStatisticService {
     private final PlayerStatisticRespository playerStatisticRepository;
 
     @Transactional
-    public PlayerStatistic getStatisticById(Long id) {
+    public PlayerStatistic getStatisticById(Long id) throws PlayerStatisticNotFoundException, IllegalArgumentException {
         if (id == null) {
-            throw new IllegalArgumentException("Spieler-Statistik-ID darf nicht null sein");
+            throw new IllegalArgumentException("id darf nicht null sein");
         }
         return playerStatisticRepository.findById(id)
                 .orElseThrow(() -> new PlayerStatisticNotFoundException(id));
-    }
-
-    @Transactional
-    public PlayerStatistic createStatistic(PlayerProfile profile) {
-        PlayerStatistic newStatistic = buildStatistic(profile);
-        profile.setStatistic(newStatistic);
-
-        return playerStatisticRepository.save(newStatistic);
     }
 
     @Transactional
@@ -67,15 +58,13 @@ public class PlayerStatisticService {
         statistic.setLastPlayedOn(LocalDate.now());
     }
 
-    @NonNull
-    private PlayerStatistic buildStatistic(PlayerProfile profile) {
-        PlayerStatistic statstic = new PlayerStatistic();
-        statstic.setProfile(profile);
-        statstic.setTotalGames(0);
-        statstic.setGamesWon(0);
-        statstic.setGamesLost(0);
-        statstic.setGamesSurrendered(0);
-
-        return statstic;
+    public PlayerStatistic buildInitialStatistic(PlayerProfile profile) {
+        return PlayerStatistic.builder()
+                .profile(profile)
+                .totalGames(0)
+                .gamesWon(0)
+                .gamesLost(0)
+                .gamesSurrendered(0)
+                .build();
     }
 }
