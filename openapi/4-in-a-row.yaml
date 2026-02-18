@@ -53,6 +53,8 @@ paths:
                                     $ref: '#/components/schemas/Game'
                 '400':
                     $ref: '#/components/responses/BadRequest'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
                 default:
                     $ref: '#/components/responses/InternalServerError'
         post:
@@ -76,6 +78,8 @@ paths:
                                 $ref: '#/components/schemas/Game'
                 '400':
                     $ref: '#/components/responses/BadRequest'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
@@ -103,6 +107,8 @@ paths:
                                 $ref: '#/components/schemas/Game'
                 '404':
                     $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
                 default:
                     $ref: '#/components/responses/InternalServerError'
         delete:
@@ -116,6 +122,8 @@ paths:
                     description: NoContent - Spiel gelöscht
                 '404':
                     $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
@@ -154,6 +162,8 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
@@ -193,6 +203,8 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
@@ -209,7 +221,7 @@ paths:
                   required: false
                   schema:
                       type: string
-                  description: Teil des username der Spieler
+                  description: Teil des displayName der Spieler
                 - in: query
                   name: limit
                   required: false
@@ -226,29 +238,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/Player'
-                default:
-                    $ref: '#/components/responses/InternalServerError'
-        post:
-            summary: Erstellt einen Spieler
-            operationId: createPlayer
-            x-webclient-blocking: true
-            tags:
-                - Player
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/CreatePlayerRequest'
-            responses:
-                '201':
-                    description: Created - Spieler erstellt
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Player'
-                '400':
-                    $ref: '#/components/responses/BadRequest'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
@@ -276,6 +267,8 @@ paths:
                                 $ref: '#/components/schemas/Player'
                 '404':
                     $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
                 default:
                     $ref: '#/components/responses/InternalServerError'
         put:
@@ -302,118 +295,52 @@ paths:
                     $ref: '#/components/responses/BadRequest'
                 '404':
                     $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
                 default:
                     $ref: '#/components/responses/InternalServerError'
-        delete:
-            summary: Löscht einen Spieler anhand seiner Id
-            operationId: deletePlayer
-            x-webclient-blocking: true
-            tags:
-                - Player
+
+    '/api/v1/auth/register':
+        post:
+            summary: Registriert einen neuen User
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RegisterRequest'
             responses:
-                '204':
-                    description: NoContent - Spieler gelöscht
-                '404':
-                    $ref: '#/components/responses/NotFound'
+                '200':
+                    description: Erfolg
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AuthResponse'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
-#  "/api/v1/auth/register":
-#    post:
-#      summary: Registriert den Nutzer mit Email und Passwort
-#      operationId: register
-#      x-webclient-blocking: true
-#      tags:
-#        - Auth
-#      security:
-#        - browserIdHeader: []
-#      requestBody:
-#        required: true
-#        content:
-#          application/json:
-#            schema:
-#              $ref: "#/components/schemas/RegisterRequest"
-#      responses:
-#        "201":
-#          description: Created
-#          content:
-#            application/json:
-#              schema:
-#                $ref: "#/components/schemas/RegisterResponse"
-#        "400":
-#          $ref: "#/components/responses/BadRequest"
-#        default:
-#          $ref: "#/components/responses/InternalServerError"
-
-#  "/api/v1/auth/login":
-#    post:
-#      summary: Anmeldung mit Email und Passwort
-#      operationId: loginMitEmailUndPasswort
-#      x-webclient-blocking: true
-#      tags:
-#        - Auth
-#      security:
-#        - browserIdHeader: []
-#      requestBody:
-#        required: true
-#        content:
-#          application/json:
-#            schema:
-#              $ref: "#/components/schemas/LoginRequest"
-#      responses:
-#        "200":
-#          description: Ok
-#          headers:
-#            Set-Cookie:
-#              description: |
-#                HttpOnly Cookie mit ApiKey, gültig z.B. 90 Tage
-#              schema:
-#                type: string
-#                example: "X-Api-Key=abc123; HttpOnly; Path=/; Max-Age=7776000"
-#          content:
-#            application/json:
-#              schema:
-#                $ref: "#/components/schemas/LoginResponse"
-#        "401":
-#          $ref: "#/components/responses/Unauthorized"
-#        default:
-#          $ref: "#/components/responses/InternalServerError"
-
-#  "/api/v1/auth/login/google": # TODO: überarbeiten
-#    post:
-#      summary: Anmeldung via. Google ID Token
-#      operationId: loginMitGoogle
-#      x-webclient-blocking: true
-#      tags:
-#        - Auth
-#      security:
-#        - browserIdHeader: []
-#      requestBody:
-#        required: true
-#        content:
-#          application/json:
-#            schema:
-#              type: object
-#              required:
-#                - googleToken
-#              properties:
-#                googleToken:
-#                  type: string
-#                  description: Google-Id Token
-#      responses:
-#        "204":
-#          description: NoContent
-#          headers:
-#            Set-Cookie:
-#              description: |
-#                HttpOnly Cookie mit ApiKey, gültig z.B. 90 Tage
-#              schema:
-#                type: string
-#                example: "X-Api-Key=abc123; HttpOnly; Path=/; Max-Age=7776000"
-#        "401":
-#          $ref: "#/components/responses/Unauthorized"
-#        default:
-#          $ref: "#/components/responses/InternalServerError"
+    /api/v1/auth/login:
+        post:
+            summary: Login mit E-Mail
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/LoginRequest'
+            responses:
+                '200':
+                    description: Erfolgreicher Login, liefert JWT
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AuthResponse'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
 
 #  "/api/v1/auth/login/check":
 #    get:
@@ -540,6 +467,18 @@ components:
                         code: 404
                         details: 'Mitglied mit ID 123 existiert nicht'
 
+        TooManyRequestsError:
+            description: 'Zu viele Anfragen innerhalb kurzer Zeit. Rate Limit überschritten.'
+            headers:
+                Retry-After:
+                    schema:
+                        type: integer
+                    description: 'Sekunden, die gewartet werden muss, bevor die nächste Anfrage erlaubt ist.'
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/ApiError'
+
         InternalServerError:
             description: InternalServerError
             content:
@@ -653,19 +592,22 @@ components:
 
         Player:
             type: object
-            description: Response eines Spieler
+            description: Response eines Spielers (aggregiert Daten aus Profil, User und Statistik)
             required:
                 - id
-                - username
-                - email
+                - userId
+                - displayName
                 - registeredOn
             properties:
                 id:
                     description: Id des Spieler-Profils
                     $ref: '#/components/schemas/EntityId'
-                username:
-                    description: Benutzername des Spielers
-                    $ref: '#/components/schemas/Username'
+                userId:
+                    description: Id des zugehörigen Users
+                    $ref: '#/components/schemas/EntityId'
+                displayName:
+                    description: Anzeigename des Spielers
+                    $ref: '#/components/schemas/DisplayName'
                 registeredOn:
                     description: Datum der Registrierung
                     type: string
@@ -695,20 +637,6 @@ components:
                     format: date
                     description: Datum des letzten Spiels
 
-        CreatePlayerRequest:
-            type: object
-            description: Objekt zum Erstellen eines Spielers
-            required:
-                - username
-                - email
-            properties:
-                username:
-                    description: Benutzername des Spielers
-                    $ref: '#/components/schemas/Username'
-                email:
-                    description: Email des Spielers
-                    $ref: '#/components/schemas/Email'
-
         MoveRequest:
             type: object
             required:
@@ -725,17 +653,27 @@ components:
                     maximum: 6 # später bei variablen Spielfeldgrößen problematisch
                     description: Spalte in die der Spielstein fallen gelassen wird
 
-        Username:
+        DisplayName:
             type: string
-            description: Benutzername
-            #pattern: "^(?=.{3,30}$)(?![_.-])(?!.*[_.-]{2})[a-zA-Z0-9._-]+(?<![_.-])$"
+            description: 'Anzeigename mit: Min 3, Max 30 Zeichen. Erlaubt Buchstaben, Zahlen, Punkt, Unterstrich. Darf nicht mit Sonderzeichen starten/enden.'
+            minLength: 3
+            maxLength: 30
+            pattern: '^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){1,28}[a-zA-Z0-9]$'
             example: Max-Mustermann.Der_Erste12
 
         Email:
             type: string
             format: email
-            description: E-Mail Adresse
+            description: E-Mail Adresse # Valide nach RFC 5322
             example: 'max.musterman@gmail.com'
+
+        Password:
+            type: string
+            format: password
+            minLength: 8
+            description: 'Passwort mit: Mind. 8 Zeichen, inkl. Groß-/Kleinschreibung, Zahl und Sonderzeichen.'
+            # Regex: 1 Uppercase, 1 Lowercase, 1 Digit, 1 Special Char, Min 8 chars
+            pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
 
         ApiError:
             type: object
@@ -766,123 +704,75 @@ components:
                     type: object
                     additionalProperties: true # Erlaubt die Map<String, Object>
                     description: 'Zusätzliche Fehlerdetails wie Validierungsmeldungen'
-#    BrowserId:
-#      type: string
-#      format: uuid
-#      description: Eindeutige UUID des Browsers / Geräts
-#      example: "1bf93699-ee11-4a4a-a4a4-be7606b2de4d"
 
-#    Passwort:
-#      type: string
-#      format: password
-#      description: Passwort
-#      #pattern: "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[?!%&§@€$'*+<>\\.,_-])[A-Za-z\\d?!%&§@€$'*+<>\\.,_-]{8,}$"
+        RegisterRequest:
+            type: object
+            required:
+                - displayName
+                - password
+                - email
+            properties:
+                displayName:
+                    $ref: '#/components/schemas/DisplayName'
+                password:
+                    $ref: '#/components/schemas/Password'
+                email:
+                    $ref: '#/components/schemas/Email'
 
-#    Steam64:
-#      type: integer
-#      description: Einzigartige Steam64-Id
-#      example: 76561199023920905
-#      minimum: 7656000000000
-#      maximum: 7656999999999
+        LoginRequest:
+            type: object
+            required:
+                - email
+                - password
+            properties:
+                email:
+                    $ref: '#/components/schemas/Email'
+                password:
+                    $ref: '#/components/schemas/Password'
 
-#    DiscordBenutzerId: # TODO: ggf. als Ersatz für Discord benutzername, zumindest Rrgänzung
-#      type: integer
-#      description: Einzigartige Discord-BenutzerId
+        AuthResponse:
+            type: object
+            properties:
+                token:
+                    type: string
 
-#    DiscordBenutzerName:
-#      type: string
-#      #pattern: "^(?!.*\\.\\.)(?![._])[a-z0-9._]{2,32}(?<![._])$"
-#      example: "paul.mcwater"
-#      description: Discord-Benutzername
+        UserResponse:
+            type: object
+            properties:
+                email:
+                    type: string
+                roles:
+                    type: array
+                    items:
+                        type: string
 
-#    RegisterRequest:
-#      type: object
-#      required:
-#        - benutzername
-#        - email
-#        - passwort
-#      properties:
-#        benutzername:
-#          description: Benutzername eines neuen Nutzers
-#          $ref: "#/components/schemas/Username"
-#        email:
-#          description: E-Mail eines neuen Nutzers
-#          $ref: "#/components/schemas/Email"
-#        passwort:
-#          description: Passwort eines neuen Nutzers
-#          $ref: "#/components/schemas/Passwort"
-#    RegisterResponse:
-#      type: object
-#      required:
-#        - benutzername
-#        - email
-#      properties:
-#        benutzername:
-#          description: Benutzername des neuen Nutzers
-#          $ref: "#/components/schemas/Username"
-#        email:
-#          description: E-Mail des neuen Nutzers
-#          $ref: "#/components/schemas/Email"
+    #    Steam64:
+    #      type: integer
+    #      description: Einzigartige Steam64-Id
+    #      example: 76561199023920905
+    #      minimum: 7656000000000
+    #      maximum: 7656999999999
 
-#    LoginRequest:
-#      type: object
-#      required:
-#        - benutzernameOderEmail
-#        - passwort
-#      properties:
-#        benutzernameOderEmail:
-#          description: Benutzername oder E-Mail des Nutzers
-#          anyOf:
-#            - $ref: "#/components/schemas/Username"
-#            - $ref: "#/components/schemas/Email"
-#        passwort:
-#          description: Passwort des Nutzers
-#          $ref: "#/components/schemas/Passwort"
-#    LoginResponse:
-#      type: object
-#      required:
-#        - benutzername
-#        - rollen
-#        - rechte
-#      properties:
-#        benutzername:
-#          description: Benutzername des Nutzers
-#          $ref: "#/components/schemas/Username"
-#        pictureLink:
-#          description: Link zu einem Bild als Profilbild des Nutzers
-#          $ref: "#/components/schemas/PictureLink"
+    #    DiscordBenutzerId: # TODO: ggf. als Ersatz für Discord benutzername, zumindest Rrgänzung
+    #      type: integer
+    #      description: Einzigartige Discord-BenutzerId
 
-#    PictureLink:
-#      description: Link zu einem Bild
-#      type: string
-#      format: uri
+    #    DiscordBenutzerName:
+    #      type: string
+    #      #pattern: "^(?!.*\\.\\.)(?![._])[a-z0-9._]{2,32}(?<![._])$"
+    #      example: "paul.mcwater"
+    #      description: Discord-Benutzername
 
-#    Token:
-#      type: object
-#      properties:
-#        token:
-#          type: string
-#          #pattern: "^[a-zA-Z0-9]{32}$"
-#        #accountId:
-#        #  $ref: "#/components/schemas/AccountId"
+    #    PictureLink:
+    #      description: Link zu einem Bild
+    #      type: string
+    #      format: uri
 
-#    BenutzerId:
-#      type: integer
-#      format: int32
-#      description: Einzigartige Id des Benutzers
-#      example: 1
+    securitySchemes:
+        bearerAuth:
+            type: http
+            scheme: bearer
+            bearerFormat: JWT
 
-#  securitySchemes:
-#    apiKeyCookie:
-#      type: apiKey
-#      in: cookie
-#      name: X-Api-Key
-#      description: Langlebiger API Key als HttpOnly-Cookie (90 Tage).
-#    browserIdHeader:
-#      type: apiKey
-#      in: header
-#      name: X-Browser-Id
-#      description: UUID zur Geräteidentifikation, muss bei jeder Anfrage mitgesendet werden
-#security:
-#  - apiKeyCookie: []
-#    browserIdHeader: []
+security:
+    - bearerAuth: []
