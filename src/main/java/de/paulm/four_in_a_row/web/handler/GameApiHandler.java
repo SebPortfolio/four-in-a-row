@@ -20,22 +20,16 @@ import de.paulm.model.GameModeWdto;
 import de.paulm.model.GameStatusWdto;
 import de.paulm.model.GameWdto;
 import de.paulm.model.MoveRequestWdto;
+import lombok.RequiredArgsConstructor;
 
 @RestController
+@RequiredArgsConstructor
 public class GameApiHandler implements GameApiDelegate {
 
     private final GameService gameService;
     private final GameMapper gameMapper;
     private final GameModeMapper gameModeMapper;
     private final GameStatusMapper gameStatusMapper;
-
-    public GameApiHandler(GameService gameService, GameMapper gameMapper, GameModeMapper gameModeMapper,
-            GameStatusMapper gameStatusMapper) {
-        this.gameService = gameService;
-        this.gameMapper = gameMapper;
-        this.gameModeMapper = gameModeMapper;
-        this.gameStatusMapper = gameStatusMapper;
-    }
 
     @Override
     public ResponseEntity<GameWdto> createGame(GameCreateRequestWdto createGameRequest) {
