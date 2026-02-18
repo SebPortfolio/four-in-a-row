@@ -1,4 +1,4 @@
-package de.paulm.four_in_a_row.web.advice;
+package de.paulm.four_in_a_row.web.exceptions.advice;
 
 import java.time.LocalDateTime;
 import java.util.Map;

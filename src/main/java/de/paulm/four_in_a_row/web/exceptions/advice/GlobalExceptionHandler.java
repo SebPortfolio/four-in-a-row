@@ -1,4 +1,4 @@
-package de.paulm.four_in_a_row.web.advice;
+package de.paulm.four_in_a_row.web.exceptions.advice;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +13,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import de.paulm.four_in_a_row.domain.exceptions.PlayerProfileNotFoundException;
 import de.paulm.four_in_a_row.domain.exceptions.PlayerStatisticNotFoundException;
+import de.paulm.four_in_a_row.web.exceptions.RateLimitExceededException;
 import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
@@ -70,5 +71,15 @@ public class GlobalExceptionHandler {
                 details);
 
         return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ApiError> handleRateLimit(RateLimitExceededException ex, WebRequest request) {
+        ApiError error = new ApiError(
+                ex.getMessage(),
+                HttpStatus.TOO_MANY_REQUESTS,
+                request.getDescription(false).replace("uri=", ""),
+                Map.of("retry_after", "Wait a few seconds"));
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).header("Retry-After", "60").body(error);
     }
 }
