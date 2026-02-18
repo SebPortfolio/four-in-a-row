@@ -2,7 +2,7 @@ package de.paulm.four_in_a_row.mapper;
 
 import org.mapstruct.Mapper;
 
-import de.paulm.four_in_a_row.game.GameStatus;
+import de.paulm.four_in_a_row.domain.game.GameStatus;
 import de.paulm.model.GameStatusWdto;
 
 @Mapper(componentModel = "spring")

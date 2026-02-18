@@ -2,9 +2,9 @@ package de.paulm.four_in_a_row.repository.specs;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import de.paulm.four_in_a_row.game.Game;
-import de.paulm.four_in_a_row.game.GameMode;
-import de.paulm.four_in_a_row.game.GameStatus;
+import de.paulm.four_in_a_row.domain.game.Game;
+import de.paulm.four_in_a_row.domain.game.GameMode;
+import de.paulm.four_in_a_row.domain.game.GameStatus;
 
 /**
  * Factory-Klasse für JPA-Specifications zur Abfrage von {@link Game}-Entitäten.

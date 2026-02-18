@@ -7,9 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import de.paulm.api.GameApiDelegate;
-import de.paulm.four_in_a_row.game.Game;
-import de.paulm.four_in_a_row.game.GameMode;
-import de.paulm.four_in_a_row.game.GameStatus;
+import de.paulm.four_in_a_row.domain.game.Game;
+import de.paulm.four_in_a_row.domain.game.GameMode;
+import de.paulm.four_in_a_row.domain.game.GameStatus;
 import de.paulm.four_in_a_row.mapper.GameMapper;
 import de.paulm.four_in_a_row.mapper.GameModeMapper;
 import de.paulm.four_in_a_row.mapper.GameStatusMapper;

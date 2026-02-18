@@ -8,7 +8,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-import de.paulm.four_in_a_row.game.Game;
+import de.paulm.four_in_a_row.domain.game.Game;
 import de.paulm.model.GameWdto;
 
 @Mapper(componentModel = "spring", uses = { PlayerMapper.class })

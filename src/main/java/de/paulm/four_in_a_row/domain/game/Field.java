@@ -1,4 +1,4 @@
-package de.paulm.four_in_a_row.game;
+package de.paulm.four_in_a_row.domain.game;
 
 public enum Field {
     EMPTY(0),

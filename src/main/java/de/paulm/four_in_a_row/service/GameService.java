@@ -12,11 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import de.paulm.four_in_a_row.domain.exceptions.ColumnFullException;
 import de.paulm.four_in_a_row.domain.exceptions.GameNotFoundException;
-import de.paulm.four_in_a_row.game.Game;
-import de.paulm.four_in_a_row.game.GameMode;
-import de.paulm.four_in_a_row.game.GameResult;
-import de.paulm.four_in_a_row.game.GameStatus;
-import de.paulm.four_in_a_row.player.PlayerProfile;
+import de.paulm.four_in_a_row.domain.game.Game;
+import de.paulm.four_in_a_row.domain.game.GameMode;
+import de.paulm.four_in_a_row.domain.game.GameResult;
+import de.paulm.four_in_a_row.domain.game.GameStatus;
+import de.paulm.four_in_a_row.domain.player.PlayerProfile;
 import de.paulm.four_in_a_row.repository.GameRepository;
 import de.paulm.four_in_a_row.repository.specs.GameSpecifications;
 import lombok.RequiredArgsConstructor;

@@ -1,9 +1,9 @@
-package de.paulm.four_in_a_row.game;
+package de.paulm.four_in_a_row.domain.game;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import de.paulm.four_in_a_row.player.PlayerProfile;
+import de.paulm.four_in_a_row.domain.player.PlayerProfile;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
