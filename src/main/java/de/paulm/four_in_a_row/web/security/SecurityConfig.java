@@ -37,7 +37,11 @@ public class SecurityConfig {
     // Reduced whitelist for simplicity
     private static final String[] WHITE_LIST_URL = {
             "/api/v1/auth/login",
-            "/api/v1/auth/register"
+            "/api/v1/auth/register",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/api-docs/**",
+            "/v3/api-docs/**"
     };
 
     @Bean
