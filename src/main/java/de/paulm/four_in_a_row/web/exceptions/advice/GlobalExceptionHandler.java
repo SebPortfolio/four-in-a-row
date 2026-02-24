@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -13,6 +14,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import de.paulm.four_in_a_row.domain.exceptions.PlayerProfileNotFoundException;
 import de.paulm.four_in_a_row.domain.exceptions.PlayerStatisticNotFoundException;
+import de.paulm.four_in_a_row.web.exceptions.ForbiddenException;
 import de.paulm.four_in_a_row.web.exceptions.RateLimitExceededException;
 import jakarta.validation.ConstraintViolationException;
 
@@ -24,17 +26,17 @@ public class GlobalExceptionHandler {
         ApiError error = new ApiError(
                 ex.getMessage(),
                 HttpStatus.NOT_FOUND,
-                request.getDescription(false).replace("uri=", ""), // Gibt den Pfad ohne Zusatzinfos
+                getDescriptionWithoutContextInfo(request),
                 Map.of());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleBadRequest(IllegalArgumentException ex, WebRequest request) {
+    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex, WebRequest request) {
         ApiError error = new ApiError(
                 ex.getMessage(),
                 HttpStatus.BAD_REQUEST,
-                request.getDescription(false).replace("uri=", ""),
+                getDescriptionWithoutContextInfo(request),
                 Map.of());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -53,7 +55,7 @@ public class GlobalExceptionHandler {
         ApiError error = new ApiError(
                 "Validation failed for one or more fields",
                 HttpStatus.BAD_REQUEST,
-                request.getDescription(false).replace("uri=", ""),
+                getDescriptionWithoutContextInfo(request),
                 errorMap);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
@@ -67,7 +69,7 @@ public class GlobalExceptionHandler {
         ApiError error = new ApiError(
                 "Validierung fehlgeschlagen",
                 HttpStatus.BAD_REQUEST,
-                request.getDescription(false).replace("uri=", ""),
+                getDescriptionWithoutContextInfo(request),
                 details);
 
         return ResponseEntity.badRequest().body(error);
@@ -78,8 +80,45 @@ public class GlobalExceptionHandler {
         ApiError error = new ApiError(
                 ex.getMessage(),
                 HttpStatus.TOO_MANY_REQUESTS,
-                request.getDescription(false).replace("uri=", ""),
-                Map.of("retry_after", "Wait a few seconds"));
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).header("Retry-After", "60").body(error);
+                getDescriptionWithoutContextInfo(request),
+                Map.of("retry_after_seconds", ex.getRetryAfterSeconds()));
+        String secondsStr = String.valueOf(ex.getRetryAfterSeconds());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", secondsStr)
+                .body(error);
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiError> handleForbidden(ForbiddenException ex, WebRequest request) {
+        ApiError error = new ApiError(
+                ex.getMessage(),
+                HttpStatus.FORBIDDEN,
+                getDescriptionWithoutContextInfo(request),
+                Map.of());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ApiError> handleUsernameNotFound(UsernameNotFoundException ex, WebRequest request) {
+        ApiError error = new ApiError(
+                ex.getMessage(),
+                HttpStatus.UNAUTHORIZED,
+                getDescriptionWithoutContextInfo(request),
+                Map.of());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleGlobalException(Exception ex, WebRequest request) {
+        ApiError error = new ApiError(
+                "Ein unerwarteter Fehler ist aufgetreten",
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                getDescriptionWithoutContextInfo(request),
+                Map.of("details", ex.getMessage())); // In Prod evtl. weglassen
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    private String getDescriptionWithoutContextInfo(WebRequest request) {
+        return request.getDescription(false).replace("uri=", ""); // Gibt den Pfad ohne Zusatzinfos
     }
 }
