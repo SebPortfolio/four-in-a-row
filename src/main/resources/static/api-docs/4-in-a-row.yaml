@@ -42,7 +42,7 @@ paths:
                   name: playerId
                   required: false
                   schema:
-                      $ref: '#/components/schemas/EntityId'
+                      $ref: '#/components/schemas/PlayerId'
                   description: Id eines Spielers des Spiels
             responses:
                 '200':
@@ -95,8 +95,7 @@ paths:
               name: gameId
               required: true
               schema:
-                  type: integer
-                  format: int64
+                  $ref: '#/components/schemas/GameId'
               description: Einzigartige Id des Spiels
         get:
             summary: Lädt ein Spiel anhand seiner Id
@@ -147,8 +146,7 @@ paths:
               name: gameId
               required: true
               schema:
-                  type: integer
-                  format: int64
+                  $ref: '#/components/schemas/GameId'
               description: Einzigartige Id des Spiels
         post:
             summary: Ausführen eines Zuges
@@ -189,8 +187,7 @@ paths:
               name: gameId
               required: true
               schema:
-                  type: integer
-                  format: int64
+                  $ref: '#/components/schemas/GameId'
               description: Einzigartige Id des Spiels
         post:
             summary: Spieler gibt das Spiel auf
@@ -209,10 +206,14 @@ paths:
                             properties:
                                 playerId:
                                     description: Id des aufgebenden Spielers
-                                    $ref: '#/components/schemas/EntityId'
+                                    $ref: '#/components/schemas/PlayerId'
             responses:
-                '204':
-                    description: NoContent – Spiel erfolgreich beendet
+                '200':
+                    description: Ok - Spiel erfolgreich aufgegeben
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Game'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -256,6 +257,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/Player'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '429':
@@ -269,9 +272,7 @@ paths:
               name: playerId
               required: true
               schema:
-                  type: integer
-                  format: int64
-              description: Einzigartige Id des Spielers
+                  $ref: '#/components/schemas/PlayerId'
         get:
             summary: Erhalte einen Spieler
             operationId: getPlayerById
@@ -573,48 +574,63 @@ components:
 
     responses:
         BadRequest:
-            description: BadRequest
+            description: Bad Request - Validierungsfehler oder fehlerhafte Syntax
             content:
                 application/json:
                     schema:
                         $ref: '#/components/schemas/ApiError'
                     example:
-                        message: 'Die Anfrage konnte nicht verarbeitet werden'
-                        code: 400
-                        details: 'Kein QueryParameter angegeben'
+                        statusCode: 400
+                        message: 'Validierung fehlgeschlagen'
+                        error: 'BAD_REQUEST'
+                        timestamp: '2026-02-19T19:00:00Z'
+                        path: '/api/v1/games'
+                        details:
+                            gameMode: 'Darf nicht null sein'
+                            player2Id: 'Spieler existiert nicht'
 
         Unauthorized:
-            description: Unauthorized
+            description: Unauthorized - Token fehlt, ist abgelaufen oder ungültig
             content:
                 application/json:
                     schema:
                         $ref: '#/components/schemas/ApiError'
                     example:
+                        statusCode: 401
                         message: 'Authentifizierung erforderlich'
-                        code: 401
-                        details: 'Key fehlt oder ist ungültig'
+                        error: 'UNAUTHORIZED'
+                        timestamp: '2026-02-19T19:05:00Z'
+                        path: '/api/v1/auth/me'
+                        details:
+                            token: 'Expired'
 
         Forbidden:
-            description: Forbidden
+            description: Forbidden - Authentifiziert, aber keine Rechte für diese Ressource
             content:
                 application/json:
                     schema:
                         $ref: '#/components/schemas/ApiError'
                     example:
+                        statusCode: 403
                         message: 'Zugriff verweigert'
-                        code: 403
-                        details: 'Benutzer hat keine Berechtigung für diese Aktion'
+                        error: 'FORBIDDEN'
+                        timestamp: '2026-02-19T19:10:00Z'
+                        path: '/api/v1/games/123/moves'
+                        details:
+                            reason: 'Du bist nicht Teilnehmer dieses Spiels'
 
         NotFound:
-            description: NotFound
+            description: NotFound - Ressource existiert nicht
             content:
                 application/json:
                     schema:
                         $ref: '#/components/schemas/ApiError'
                     example:
-                        message: 'Die angefragte Ressource wurde nicht gefunden'
-                        code: 404
-                        details: 'Mitglied mit ID 123 existiert nicht'
+                        statusCode: 404
+                        message: 'Spiel nicht gefunden'
+                        error: 'NOT_FOUND'
+                        timestamp: '2026-02-19T19:15:00Z'
+                        path: '/api/v1/games/999'
 
         TooManyRequestsError:
             description: 'Zu viele Anfragen innerhalb kurzer Zeit. Rate Limit überschritten.'
@@ -627,6 +643,12 @@ components:
                 application/json:
                     schema:
                         $ref: '#/components/schemas/ApiError'
+                    example:
+                        statusCode: 429
+                        message: 'Zu viele Anfragen, versuche es später nochmal'
+                        error: 'TOO_MANY_REQUESTS'
+                        timestamp: '2026-02-19T19:20:00Z'
+                        path: '/api/v1/register'
 
         InternalServerError:
             description: InternalServerError
@@ -693,6 +715,9 @@ components:
                     description: ausgewählter Spielmodus
                     $ref: '#/components/schemas/GameMode'
 
+        GameId:
+            description: Einzigartige Id eines Spiels
+            $ref: '#/components/schemas/EntityId'
         Game:
             type: object
             description: Response eines Spiels
@@ -707,7 +732,7 @@ components:
             properties:
                 id:
                     description: Id des Spiels
-                    $ref: '#/components/schemas/EntityId'
+                    $ref: '#/components/schemas/GameId'
                 player1:
                     description: Spieler 1
                     $ref: '#/components/schemas/Player'
@@ -716,7 +741,7 @@ components:
                     $ref: '#/components/schemas/Player'
                 currentPlayerId:
                     description: Id des Spielers, welcher Spieler am Zug ist
-                    $ref: '#/components/schemas/EntityId'
+                    $ref: '#/components/schemas/PlayerId'
                 status:
                     description: Status des Spiels
                     $ref: '#/components/schemas/GameStatus'
@@ -745,6 +770,7 @@ components:
                 - IN_PROGRESS
                 - COMPLETED
                 - PAUSED
+            example: COMPLETED
 
         GameResult:
             type: string
@@ -753,6 +779,7 @@ components:
                 - PLAYER_1_WON
                 - PLAYER_2_WON
                 - DRAW
+            example: PLAYER_1_WON
 
         GameMode:
             type: string
@@ -761,10 +788,14 @@ components:
                 - SINGLEPLAYER
                 - LOCAL_MULTIPLAYER
                 - ONLINE_MULTIPLAYER
+            example: SINGLEPLAYER
 
+        PlayerId:
+            description: Einzigartige Id eines Spielers
+            $ref: '#/components/schemas/EntityId'
         Player:
             type: object
-            description: Response eines Spielers (aggregiert Daten aus Profil, User und Statistik)
+            description: Response eines Spielers
             required:
                 - id
                 - userId
@@ -773,7 +804,7 @@ components:
             properties:
                 id:
                     description: Id des Spieler-Profils
-                    $ref: '#/components/schemas/EntityId'
+                    $ref: '#/components/schemas/PlayerId'
                 userId:
                     description: Id des zugehörigen Users
                     $ref: '#/components/schemas/EntityId'
@@ -784,30 +815,36 @@ components:
                     description: Datum der Registrierung
                     type: string
                     format: date
+                    example: '2026-02-22'
                 totalGames:
                     type: integer
                     format: int32
                     description: Anzahl gespielter Spiele
                     minimum: 0
+                    example: 10
                 gamesWon:
                     type: integer
                     format: int32
                     description: Anzahl gewonnener Spiele
                     minimum: 0
+                    example: 6
                 gamesLost:
                     type: integer
                     format: int32
                     description: Anzahl verlorener Spiele
                     minimum: 0
+                    example: 3
                 gamesSurrendered:
                     type: integer
                     format: int32
                     description: Anzahl aufgegebener Spiele
                     minimum: 0
+                    example: 1
                 lastPlayedOn:
                     type: string
                     format: date
                     description: Datum des letzten Spiels
+                    example: '2026-02-23'
 
         MoveRequest:
             type: object
@@ -816,7 +853,7 @@ components:
                 - column
             properties:
                 playerId:
-                    $ref: '#/components/schemas/EntityId'
+                    $ref: '#/components/schemas/PlayerId'
                     description: Spieler-Id des Spielers, der den Zug ausführt
                 column:
                     type: integer
@@ -834,27 +871,22 @@ components:
                 - timestamp
                 - path
             properties:
-                message:
-                    type: string
-                    example: Statistik mit ID 42 nicht gefunden
                 statusCode:
                     type: integer
-                    format: int32
-                    example: 404
+                message:
+                    type: string
                 error:
                     type: string
-                    example: NOT_FOUND
+                    description: Der HTTP-Status Name
                 timestamp:
                     type: string
                     format: date-time
-                    example: '2026-02-06T17:40:00Z'
                 path:
                     type: string
-                    example: /api/statistiken/42
                 details:
                     type: object
-                    additionalProperties: true # Erlaubt die Map<String, Object>
-                    description: 'Zusätzliche Fehlerdetails wie Validierungsmeldungen'
+                    additionalProperties: true
+                    description: Map für Feldfehler
 
         RegisterRequest:
             type: object
@@ -869,6 +901,10 @@ components:
                     $ref: '#/components/schemas/Password'
                 email:
                     $ref: '#/components/schemas/Email'
+            example:
+                displayName: 'Max.Mustermann'
+                email: 'max.mustermann@gmail.com'
+                password: 'Password123!'
 
         LoginRequest:
             type: object
@@ -906,6 +942,9 @@ components:
                     $ref: '#/components/schemas/Password'
                 newPassword:
                     $ref: '#/components/schemas/Password'
+            example:
+                oldPassword: 'Password123!'
+                newPassword: 'SicheresPasswort123!'
 
         UserSession:
             type: object
@@ -929,10 +968,12 @@ components:
                     type: string
                     format: date-time
                     description: Zeitpunkt der ersten Nutzung
+                    example: '2026-02-22T09:12:28Z'
                 lastUsedAt:
                     type: string
                     format: date-time
                     description: Zeitpunkt der letzten Nutzung
+                    example: '2018-02-22T10:48:53Z'
                 isCurrent:
                     type: boolean
                     description: Flag, ob dies das Gerät ist, mit dem man gerade anfragt
