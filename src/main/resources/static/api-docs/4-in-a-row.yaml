@@ -14,6 +14,8 @@ tags:
       description: Endpunkt zur Verwaltung von Spielen
     - name: Player
       description: Endpunkt zur Verwaltung von Spielern
+    - name: Auth
+      description: Endpunkt zur Verwaltung von Benutzern
 
 paths:
     '/api/v1/games':
@@ -53,6 +55,8 @@ paths:
                                     $ref: '#/components/schemas/Game'
                 '400':
                     $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
                 '429':
                     $ref: '#/components/responses/TooManyRequestsError'
                 default:
@@ -78,6 +82,8 @@ paths:
                                 $ref: '#/components/schemas/Game'
                 '400':
                     $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
                 '429':
                     $ref: '#/components/responses/TooManyRequestsError'
                 default:
@@ -105,6 +111,10 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Game'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
                 '429':
@@ -120,6 +130,10 @@ paths:
             responses:
                 '204':
                     description: NoContent - Spiel gelöscht
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
                 '429':
@@ -158,6 +172,8 @@ paths:
                                 $ref: '#/components/schemas/Game'
                 '400':
                     $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
                 '403':
                     $ref: '#/components/responses/Forbidden'
                 '404':
@@ -199,6 +215,8 @@ paths:
                     description: NoContent – Spiel erfolgreich beendet
                 '400':
                     $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
                 '403':
                     $ref: '#/components/responses/Forbidden'
                 '404':
@@ -238,6 +256,8 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/Player'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
                 '429':
                     $ref: '#/components/responses/TooManyRequestsError'
                 default:
@@ -265,6 +285,10 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Player'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
                 '429':
@@ -293,6 +317,10 @@ paths:
                                 $ref: '#/components/schemas/Player'
                 '400':
                     $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
                 '429':
@@ -302,7 +330,12 @@ paths:
 
     '/api/v1/auth/register':
         post:
-            summary: Registriert einen neuen User
+            summary: Registriert neuen User und liefert eine kurze Übersicht
+            operationId: register
+            x-webclient-blocking: true
+            security: []
+            tags:
+                - Auth
             requestBody:
                 required: true
                 content:
@@ -311,19 +344,29 @@ paths:
                             $ref: '#/components/schemas/RegisterRequest'
             responses:
                 '200':
-                    description: Erfolg
+                    description: Ok - Registrierung erfolgreich, Refresh-Cookie wird gesetzt
+                    headers:
+                        Set-Cookie:
+                            $ref: '#/components/headers/SetRefreshToken'
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/AuthResponse'
+                                $ref: '#/components/schemas/AuthUserResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
                 '429':
                     $ref: '#/components/responses/TooManyRequestsError'
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/v1/auth/login:
+    '/api/v1/auth/login':
         post:
-            summary: Login mit E-Mail
+            summary: Loggt einen User mit E-Mail ein und liefert eine kurze Übersicht
+            operationId: login
+            x-webclient-blocking: true
+            security: []
+            tags:
+                - Auth
             requestBody:
                 required: true
                 content:
@@ -332,96 +375,202 @@ paths:
                             $ref: '#/components/schemas/LoginRequest'
             responses:
                 '200':
-                    description: Erfolgreicher Login, liefert JWT
+                    description: Ok - Login erfolgreich, Refresh-Cookie wird gesetzt
+                    headers:
+                        Set-Cookie:
+                            $ref: '#/components/headers/SetRefreshToken'
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/AuthResponse'
+                                $ref: '#/components/schemas/AuthUserResponse'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '429':
                     $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
 
-#  "/api/v1/auth/login/check":
-#    get:
-#      summary: Prüft, ob ein Benutzer eingeloggt ist
-#      operationId: checkIsLoggedIn
-#      x-webclient-blocking: true
-#      tags:
-#       - Auth
-#      responses:
-#        "200":
-#          description: Ok
-#          content:
-#            application/json:
-#              schema:
-#                $ref: "#/components/schemas/LoginResponse" # TODO: ggf. ne andere Response
-#        "401":
-#          $ref: "#/components/responses/Unauthorized"
+    '/api/v1/auth/refresh':
+        post:
+            summary: Erneuert den Access-Token sowie Refresh-Token und liefert eine kurze User-Übersicht
+            operationId: refreshAccessToken
+            x-webclient-blocking: true
+            tags:
+                - Auth
+            security: []
+            parameters:
+                - in: cookie
+                  name: refreshToken
+                  schema:
+                      type: string
+                  required: false
+                  description: Das alte Refresh-Token aus dem Cookie
+            responses:
+                '200':
+                    description: Ok - Refresh erfolreich, Refresh-Cookie wird gesetzt
+                    headers:
+                        Set-Cookie:
+                            $ref: '#/components/headers/SetRefreshToken'
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AuthUserResponse'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
 
-#  "/api/v1/auth/logout":
-#    post:
-#      summary: Meldet den Nutzer ab
-#      operationId: logout
-#      x-webclient-blocking: true
-#      tags:
-#        - Auth
-#      responses:
-#        "204":
-#          description: NoContent
-#          headers:
-#            Set-Cookie:
-#              description: Löschen des ApiKey Cookie
-#              schema:
-#                type: string
-#        "401":
-#          $ref: "#/components/responses/Unauthorized"
-#        default:
-#          $ref: "#/components/responses/InternalServerError"
+    '/api/v1/auth/logout':
+        post:
+            summary: Loggt den User aus und löscht das Refresh-Token
+            operationId: logout
+            x-webclient-blocking: true
+            tags:
+                - Auth
+            parameters:
+                - in: cookie
+                  name: refreshToken
+                  schema:
+                      type: string
+                  required: false
+                  description: Das zu entwertende Refresh-Token
+            responses:
+                '204':
+                    description: NoContent - Ausloggen erfolgreich, nur diese Sitzung beendet
+                    headers:
+                        Set-Cookie:
+                            $ref: '#/components/headers/DeleteRefreshToken'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
 
-#  "/api/v1/debug/set_cookies": # TODO: NUR ZU DEBUG ZWECKEN
-#    post:
-#      summary: Setze Cookies im Browser manuell
-#      operationId: setCookies
-#      tags:
-#        - Debug
-#      x-webclient-blocking: true
-#      requestBody:
-#        content:
-#          application/json:
-#            schema:
-#              properties:
-#                X-Api-Key:
-#                  type: string
-#                  description: Wert des Cookies (der eigentliche Cookie)
-#      responses:
-#        200:
-#          description: OK
-#          headers:
-#            Set-Cookie:
-#              description: Cookie, das im Browser gesetzt wird
-#              schema:
-#                type: string
-#                example: X-Api-Key=abcdef123; Path=/; HttpOnly; Secure; SameSite=None
-#          content:
-#            application/json:
-#              schema:
-#                properties:
-#                  message:
-#                    type: string
-#                    description: Nachricht
-#                  cookies:
-#                    type: array
-#                    description: alle gesetzen Cookies
-#                    items:
-#                      properties:
-#                        cookie:
-#                          type: string
-#                          description: gesetzer Cookie
-#        default:
-#          $ref: "#/components/responses/InternalServerError"
+    '/api/v1/auth/me':
+        get:
+            summary: Aktuelle User- und Profildaten abrufen
+            operationId: me
+            x-webclient-blocking: true
+            tags:
+                - Auth
+            responses:
+                '200':
+                    description: Ok - Rahmendaten des Users und Profil des angemeldeten Spielers
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserContextResponse'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/auth/change-password':
+        post:
+            summary: Setzt ein neues Passwort für den User
+            operationId: changePassword
+            x-webclient-blocking: true
+            tags:
+                - Auth
+            parameters:
+                - in: cookie
+                  name: refreshToken
+                  schema:
+                      type: string
+                  required: false
+                  description: Das aktuelle Refresh-Token
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/PasswordChangeRequest'
+            responses:
+                '204':
+                    description: NoContent - Passwortänderung erfolgreich
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/auth/sessions':
+        parameters:
+            - in: cookie
+              name: refreshToken
+              schema:
+                  type: string
+              required: false
+              description: Das aktuelle Refresh-Token
+        get:
+            summary: Liste alle aktiven Geräte/Sessions auf
+            operationId: getActiveSessions
+            tags:
+                - Auth
+            responses:
+                '200':
+                    description: Liste der Sessions
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/UserSession'
+        delete:
+            summary: Alle Sessions außer der aktuellen beenden (Logout everywhere else)
+            operationId: logoutOthers
+            tags:
+                - Auth
+            responses:
+                '204':
+                    description: Alle anderen Sessions gelöscht
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/auth/sessions/{sessionId}':
+        delete:
+            summary: Eine gezielte Session beenden (Gerät ausloggen)
+            operationId: terminateSession
+            tags:
+                - Auth
+            parameters:
+                - in: path
+                  name: sessionId
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                '204':
+                    description: Session erfolgreich beendet
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
 
 components:
+    headers:
+        SetRefreshToken:
+            description: Setzt das neue Refresh-Token (HttpOnly, Secure)
+            schema:
+                type: string
+                example: refreshToken=new_token_abc123; Path=/api/v1/auth; HttpOnly; Secure; SameSite=Strict; Max-Age=604800
+        DeleteRefreshToken:
+            description: Löscht das Refresh-Token Cookie
+            schema:
+                type: string
+                example: refreshToken=; Path=/api/v1/auth; HttpOnly; Secure; SameSite=Strict
+
     responses:
         BadRequest:
             description: BadRequest
@@ -502,6 +651,29 @@ components:
             format: uuid
             description: Einzigartige UUID der Entität
             example: '1bf93699-ee11-4a4a-a4a4-be7606b2de4d'
+
+        DisplayName:
+            type: string
+            description: 'Anzeigename mit: Min 3, Max 30 Zeichen. Erlaubt Buchstaben, Zahlen, Punkt, Unterstrich. Darf nicht mit Sonderzeichen starten/enden.'
+            minLength: 3
+            maxLength: 30
+            pattern: '^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){1,28}[a-zA-Z0-9]$'
+            example: Max-Mustermann.Der_Erste12
+
+        Email:
+            type: string
+            format: email
+            description: E-Mail Adresse # Valide nach RFC 5322
+            example: 'max.musterman@gmail.com'
+
+        Password:
+            type: string
+            format: password
+            minLength: 8
+            description: 'Passwort mit: Mind. 8 Zeichen, inkl. Groß-/Kleinschreibung, Zahl und Sonderzeichen.'
+            # Regex: 1 Uppercase, 1 Lowercase, 1 Digit, 1 Special Char, Min 8 chars
+            pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+            example: 'SicheresPasswort123!'
 
         GameCreateRequest:
             type: object
@@ -652,28 +824,7 @@ components:
                     minimum: 0
                     maximum: 6 # später bei variablen Spielfeldgrößen problematisch
                     description: Spalte in die der Spielstein fallen gelassen wird
-
-        DisplayName:
-            type: string
-            description: 'Anzeigename mit: Min 3, Max 30 Zeichen. Erlaubt Buchstaben, Zahlen, Punkt, Unterstrich. Darf nicht mit Sonderzeichen starten/enden.'
-            minLength: 3
-            maxLength: 30
-            pattern: '^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){1,28}[a-zA-Z0-9]$'
-            example: Max-Mustermann.Der_Erste12
-
-        Email:
-            type: string
-            format: email
-            description: E-Mail Adresse # Valide nach RFC 5322
-            example: 'max.musterman@gmail.com'
-
-        Password:
-            type: string
-            format: password
-            minLength: 8
-            description: 'Passwort mit: Mind. 8 Zeichen, inkl. Groß-/Kleinschreibung, Zahl und Sonderzeichen.'
-            # Regex: 1 Uppercase, 1 Lowercase, 1 Digit, 1 Special Char, Min 8 chars
-            pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+                    example: 4
 
         ApiError:
             type: object
@@ -729,22 +880,85 @@ components:
                     $ref: '#/components/schemas/Email'
                 password:
                     $ref: '#/components/schemas/Password'
+            example:
+                email: 'max.mustermann@gmail.com'
+                password: 'Password123!'
 
-        AuthResponse:
+        AuthUserResponse:
             type: object
+            required:
+                - accessToken
+                - userContext
             properties:
-                token:
+                accessToken:
                     type: string
+                    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+                userContext:
+                    $ref: '#/components/schemas/UserContextResponse'
 
-        UserResponse:
+        PasswordChangeRequest:
             type: object
+            required:
+                - oldPassword
+                - newPassword
             properties:
+                oldPassword:
+                    $ref: '#/components/schemas/Password'
+                newPassword:
+                    $ref: '#/components/schemas/Password'
+
+        UserSession:
+            type: object
+            required:
+                - id
+                - deviceName
+                - ipAddress
+            properties:
+                id:
+                    description: Eindeutige ID der Session
+                    $ref: '#/components/schemas/EntityId'
+                deviceName:
+                    type: string
+                    description: Gerätebezeichnung
+                    example: 'Chrome on Windows 11'
+                ipAddress:
+                    type: string
+                    description: IP-Adresse
+                    example: '192.168.178.1'
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: Zeitpunkt der ersten Nutzung
+                lastUsedAt:
+                    type: string
+                    format: date-time
+                    description: Zeitpunkt der letzten Nutzung
+                isCurrent:
+                    type: boolean
+                    description: Flag, ob dies das Gerät ist, mit dem man gerade anfragt
+                    example: true
+
+        UserContextResponse:
+            type: object
+            description: Kombiniertes Response aus User-Daten und Player-Profil
+            required:
+                - userId
+                - email
+                - playerId
+                - displayName
+            properties:
+                userId:
+                    description: Id des Users
+                    $ref: '#/components/schemas/EntityId'
                 email:
-                    type: string
-                roles:
-                    type: array
-                    items:
-                        type: string
+                    description: Email des Users
+                    $ref: '#/components/schemas/Email'
+                playerId:
+                    description: Id des Spieler-Profils
+                    $ref: '#/components/schemas/PlayerId'
+                displayName:
+                    description: Anzeigename des Spielers
+                    $ref: '#/components/schemas/DisplayName'
 
     #    Steam64:
     #      type: integer
