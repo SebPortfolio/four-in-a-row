@@ -11,12 +11,14 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -34,10 +36,15 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
     private final RateLimitingFilter rateLimitingFilter;
 
-    // Reduced whitelist for simplicity
-    private static final String[] WHITE_LIST_URL = {
+    private static final String[] CSRF_WHITE_LIST_URL = {
             "/api/v1/auth/login",
             "/api/v1/auth/register",
+            "/api/v1/auth/refresh"
+    };
+    private static final String[] AUTH_WHITE_LIST_URL = {
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/refresh",
             "/swagger-ui.html",
             "/swagger-ui/**",
             "/api-docs/**",
@@ -46,19 +53,32 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        CookieCsrfTokenRepository tokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        tokenRepository.setCookiePath("/"); // Setzt den Pfad global für die gesamte Domain
+
+        // Request Handler für SPAs (Angular)
+        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+        requestHandler.setCsrfRequestAttributeName(null);
+
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable) // Disabling CSRF as JWT is used which is immune to CSRF
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(CSRF_WHITE_LIST_URL)
+                        // 1. Speichere das Token in einem Cookie, das Angular lesen kann
+                        .csrfTokenRepository(tokenRepository)
+                        // 2. Erforderlich für neuere Spring Security Versionen (Spa-Support)
+                        .csrfTokenRequestHandler(requestHandler))
                 // rate limit as early as possible
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(WHITE_LIST_URL).permitAll() // Whitelisting some paths from authentication
+                        .requestMatchers(AUTH_WHITE_LIST_URL).permitAll() // Whitelisting some paths from authentication
                         .anyRequest().authenticated()) // All other requests must be authenticated
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless session management
                 .authenticationProvider(authenticationProvider()) // Registering the provider
                 .addFilterBefore(// Registering the JwtAuthFilter
                         jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .build();
     }
 
@@ -81,7 +101,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:4200")); // TODO: für Prod korrekte origin
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
+        config.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type", "X-XSRF-TOKEN"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
