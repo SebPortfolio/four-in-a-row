@@ -34,12 +34,12 @@ public class JwtService {
     }
 
     // Generische Methode, um beliebige Daten (Claims) zu lesen
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateAccessToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
         if (userDetails instanceof User user) {
             extraClaims.put("id", user.getId());
@@ -49,10 +49,10 @@ public class JwtService {
                     .toList();
             extraClaims.put("roles", roles);
         }
-        return buildToken(extraClaims, userDetails, jwtExpiration);
+        return buildAccessToken(extraClaims, userDetails, jwtExpiration);
     }
 
-    private String buildToken(
+    private String buildAccessToken(
             Map<String, Object> extraClaims,
             UserDetails userDetails,
             long expiration) {
@@ -66,7 +66,7 @@ public class JwtService {
                 .compact();
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateAccessToken(String token, UserDetails userDetails) {
         final Claims claims = extractAllClaims(token);
         final String username = claims.getSubject();
 
@@ -85,7 +85,7 @@ public class JwtService {
                     return false;
 
                 Date lastChange = Timestamp.valueOf(user.getLastPasswordChangeAt());
-                return !issuedAt.before(lastChange);
+                return issuedAt.getTime() >= lastChange.getTime();
             }
         }
         return true;

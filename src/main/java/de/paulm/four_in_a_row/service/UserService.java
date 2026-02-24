@@ -6,7 +6,6 @@ import java.util.Set;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +25,6 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final BanService banService;
-    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public User getUserById(Long id) throws UserNotFoundException, IllegalArgumentException {
@@ -39,15 +37,26 @@ public class UserService implements UserDetailsService {
         return banService.checkAndHandleExpiredBan(user);
     }
 
+    // Businessprozess
+    @Transactional
+    public User getUserByEmail(String email) throws UserNotFoundException, IllegalArgumentException {
+        if (email == null) {
+            throw new IllegalArgumentException("email darf nicht null sein");
+        }
+        User user = userRepository.findByEmail(email).orElseThrow(
+                () -> new UserNotFoundException());
+        return banService.checkAndHandleExpiredBan(user);
+    }
+
+    // Authentifizierungsprozess
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // Es wird nach einem identifier gesucht.
-        // Dieser kann sowohl Email, als auch Username sein.
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(
-                        () -> new UsernameNotFoundException("Benutzer nicht gefunden: " + email));
-        return banService.checkAndHandleExpiredBan(user);
+        try {
+            return getUserByEmail(email);
+        } catch (UserNotFoundException ex) {
+            throw new UsernameNotFoundException("Benutzer nicht gefunden: " + email);
+        }
     }
 
     public boolean existsByEmail(String email) {
@@ -59,7 +68,7 @@ public class UserService implements UserDetailsService {
                 .email(email)
                 .password(encodedPassword)
                 .authorities(Set.of(Role.ROLE_USER))
-                .status(UserStatus.UNVERIFIED)
+                .status(UserStatus.ACTIVE) // TODO: auf UNVERIFIED setzen & Email Verifikation mit Einmalcode
                 .build();
     }
 
@@ -80,9 +89,9 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public void changePassword(Long userId, String newRawPassword) {
+    public void changePassword(Long userId, String newEncodedPassword) {
         User user = getUserById(userId);
-        user.setPassword(passwordEncoder.encode(newRawPassword));
+        user.setPassword(newEncodedPassword);
         user.setLastPasswordChangeAt(LocalDateTime.now());
     }
 
