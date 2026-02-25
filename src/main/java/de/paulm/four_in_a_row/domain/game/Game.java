@@ -13,7 +13,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import lombok.Getter;
@@ -32,11 +31,11 @@ public class Game {
     @Column(name = "ID")
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "PLAYER_1_ID", nullable = false)
     private PlayerProfile player1;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "PLAYER_2_ID", nullable = false)
     private PlayerProfile player2;
 
