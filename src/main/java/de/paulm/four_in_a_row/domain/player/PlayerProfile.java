@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,6 +41,7 @@ public class PlayerProfile {
 
     @NotNull(message = "Anzeigename darf nicht null sein")
     @Size(min = 3, message = "Anzeigename muss mindestens 3 Zeichen haben")
+    @Pattern(regexp = "^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){1,28}[a-zA-Z0-9]$", message = "Ungültiger Anzeigename")
     @Column(name = "DISPLAY_NAME", nullable = false, unique = true)
     private String displayName;
 
