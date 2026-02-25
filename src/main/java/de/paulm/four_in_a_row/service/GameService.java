@@ -74,14 +74,14 @@ public class GameService {
     }
 
     public List<Game> getPausedGamesForPlayer(Long playerId, GameMode gameMode) {
-        playerProfileService.getPlayerProfileById(playerId); // sicherstellen, dass der Spieler existiert
+        playerProfileService.getProfileById(playerId); // sicherstellen, dass der Spieler existiert
         return this.findGames(GameStatus.PAUSED, gameMode, playerId);
     }
 
     @Transactional
     public Game createGame(Long playerProfileId1, Long playerProfileId2, GameMode gameMode) {
-        PlayerProfile player1 = playerProfileService.getPlayerProfileById(playerProfileId1);
-        PlayerProfile player2 = playerProfileService.getPlayerProfileById(playerProfileId2);
+        PlayerProfile player1 = playerProfileService.getProfileById(playerProfileId1);
+        PlayerProfile player2 = playerProfileService.getProfileById(playerProfileId2);
         Game game = new Game(player1, player2, gameMode);
         return repository.save(game);
     }

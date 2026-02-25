@@ -24,14 +24,14 @@ public class PlayerApiHandler implements PlayerApiDelegate {
 
     @Override
     public ResponseEntity<List<PlayerWdto>> getAllPlayers(String term, Integer limit) {
-        List<PlayerProfile> profiles = playerProfileService.findPlayers(term, limit);
+        List<PlayerProfile> profiles = playerProfileService.findProfiles(term, limit);
 
         return ResponseEntity.ok(playerMapper.toWdtoList(profiles));
     }
 
     @Override
     public ResponseEntity<PlayerWdto> getPlayerById(Long playerId) {
-        var profile = playerProfileService.getPlayerProfileById(playerId);
+        var profile = playerProfileService.getProfileById(playerId);
         var statistic = playerStatisticService.getStatisticById(playerId);
         profile.setStatistic(statistic);
         PlayerWdto playerDto = playerMapper.toWdto(profile);

@@ -22,7 +22,7 @@ public class PlayerProfileService {
     private final PlayerStatisticService statisticService;
 
     // TODO: limit implementieren
-    public List<PlayerProfile> findPlayers(String term, Integer limit) {
+    public List<PlayerProfile> findProfiles(String term, Integer limit) {
         if (term == null || term.isBlank()) {
             return repository.findAll();
         }
@@ -36,11 +36,11 @@ public class PlayerProfileService {
         return repository.findAll();
     }
 
-    public List<PlayerProfile> getAllPlayerProfilesWithStatistic() {
+    public List<PlayerProfile> getAllProfilesWithStatistic() {
         return repository.findAllWithStatistic();
     }
 
-    public boolean doesPlayerProfileExsistById(Long id) throws IllegalArgumentException {
+    public boolean doesProfileExsistById(Long id) throws IllegalArgumentException {
         if (id == null) {
             throw new IllegalArgumentException("Spieler-Profil-ID darf nicht null sein");
         }
@@ -50,7 +50,7 @@ public class PlayerProfileService {
 
     @NonNull
     @SuppressWarnings("null")
-    public PlayerProfile getPlayerProfileById(Long id) throws PlayerProfileNotFoundException, IllegalArgumentException {
+    public PlayerProfile getProfileById(Long id) throws PlayerProfileNotFoundException, IllegalArgumentException {
         if (id == null) {
             throw new IllegalArgumentException("Spieler-Profil-ID darf nicht null sein");
         }
@@ -60,7 +60,7 @@ public class PlayerProfileService {
 
     @NonNull
     @SuppressWarnings("null")
-    public PlayerProfile getPlayerProfileByIdWithStatistic(Long id)
+    public PlayerProfile getProfileByIdWithStatistic(Long id)
             throws PlayerProfileNotFoundException, IllegalArgumentException {
         if (id == null) {
             throw new IllegalArgumentException("Spieler-Profil-ID darf nicht null sein");
@@ -71,7 +71,7 @@ public class PlayerProfileService {
 
     @Transactional
     public void editDisplayName(Long playerId, String newName) throws IllegalArgumentException {
-        PlayerProfile profile = this.getPlayerProfileById(playerId);
+        PlayerProfile profile = this.getProfileById(playerId);
         if (newName == null || newName.isBlank()) {
             throw new IllegalDisplayNameException(newName, "Anzeigename darf nicht leer sein");
         }
@@ -83,14 +83,14 @@ public class PlayerProfileService {
 
     @Transactional
     public PlayerProfile createProfileForUser(Long userId, String displayName) {
-        PlayerProfile profile = this.buildInitalPlayerProfile(userId, displayName);
+        PlayerProfile profile = this.buildInitalProfile(userId, displayName);
         PlayerStatistic initialStats = statisticService.buildInitialStatistic(profile);
         profile.setStatistic(initialStats);
 
         return repository.save(profile);
     }
 
-    private PlayerProfile buildInitalPlayerProfile(Long userId, String displayName) {
+    private PlayerProfile buildInitalProfile(Long userId, String displayName) {
         return PlayerProfile.builder()
                 .userId(userId)
                 .displayName(displayName)

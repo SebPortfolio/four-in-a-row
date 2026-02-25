@@ -15,8 +15,8 @@ public interface UserContextResponseMapper {
 
     @Mapping(target = "userId", source = "user.id")
     @Mapping(target = "email", source = "user.email")
-    @Mapping(target = "playerId", source = "playerProfile.id")
-    @Mapping(target = "displayName", source = "playerProfile.displayName")
+    @Mapping(target = "playerId", source = "player.id")
+    @Mapping(target = "displayName", source = "player.displayName")
     @Mapping(target = "allPermissions", expression = "java(concatAndMapPermissions(userContextResponse.user()))")
     UserContextResponseWdto toWdto(UserContextResponse userContextResponse);
 
