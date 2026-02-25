@@ -55,7 +55,7 @@ public class UserService implements UserDetailsService {
         try {
             return getUserByEmail(email);
         } catch (UserNotFoundException ex) {
-            throw new UsernameNotFoundException("Benutzer nicht gefunden: " + email);
+            throw new UsernameNotFoundException("Username nicht gefunden", ex);
         }
     }
 

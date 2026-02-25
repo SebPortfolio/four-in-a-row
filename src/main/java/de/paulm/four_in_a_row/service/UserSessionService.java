@@ -9,11 +9,11 @@ import java.util.UUID;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import de.paulm.four_in_a_row.domain.exceptions.UserSessionNotFoundException;
 import de.paulm.four_in_a_row.domain.security.UserSession;
 import de.paulm.four_in_a_row.repository.UserSessionRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,18 +24,17 @@ public class UserSessionService {
 
     private final UserSessionRepository sessionRepository;
 
-    public void logoutEverywhere(Long userId) {
-        sessionRepository.deleteAllByUserId(userId);
-    }
-
+    @Transactional
     public void logoutEverywhereButCurrent(Long userId, String currentRefreshToken) {
         sessionRepository.deleteByUserIdAndRefreshTokenNot(userId, currentRefreshToken);
     }
 
+    @Transactional
     public void logoutByRefreshToken(String refreshToken) {
         sessionRepository.deleteByRefreshToken(refreshToken);
     }
 
+    @Transactional
     public void logoutBySessionId(@NonNull Long sesionId) {
         sessionRepository.deleteById(sesionId);
     }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
+import de.paulm.four_in_a_row.domain.exceptions.IllegalDisplayNameException;
 import de.paulm.four_in_a_row.domain.exceptions.PlayerProfileNotFoundException;
 import de.paulm.four_in_a_row.domain.exceptions.PlayerStatisticNotFoundException;
 import de.paulm.four_in_a_row.web.exceptions.ForbiddenException;
@@ -106,6 +107,16 @@ public class GlobalExceptionHandler {
                 getDescriptionWithoutContextInfo(request),
                 Map.of());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(IllegalDisplayNameException.class)
+    public ResponseEntity<ApiError> handleIllegalDisplayName(IllegalDisplayNameException ex, WebRequest request) {
+        ApiError error = new ApiError(
+                "Ungültiger Anzeigename",
+                HttpStatus.BAD_REQUEST,
+                getDescriptionWithoutContextInfo(request),
+                Map.of("displayName", ex.getMessage()));
+        return ResponseEntity.badRequest().body(error);
     }
 
     @ExceptionHandler(Exception.class)
