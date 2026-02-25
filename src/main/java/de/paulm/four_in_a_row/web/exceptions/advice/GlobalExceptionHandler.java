@@ -114,7 +114,7 @@ public class GlobalExceptionHandler {
                 "Ein unerwarteter Fehler ist aufgetreten",
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 getDescriptionWithoutContextInfo(request),
-                Map.of("details", ex.getMessage())); // In Prod evtl. weglassen
+                Map.of());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 

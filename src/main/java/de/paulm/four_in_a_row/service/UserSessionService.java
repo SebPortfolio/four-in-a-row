@@ -41,7 +41,7 @@ public class UserSessionService {
     }
 
     public List<UserSession> getAllSessionsByUserId(Long userId) {
-        return sessionRepository.findAllByUserId(null);
+        return sessionRepository.findAllByUserId(userId);
     }
 
     public List<UserSession> getActiveSessionsByUserId(Long userId) {
@@ -75,7 +75,7 @@ public class UserSessionService {
         try {
             inetAddr = InetAddress.getByName(ipAddressStr);
         } catch (Exception e) {
-            log.warn("IP-Adresse {} konnte nicht konvertiert werden. Grund: {}", refreshToken, e.getMessage());
+            log.warn("IP-Adresse {} konnte nicht konvertiert werden. Grund: {}", ipAddressStr, e.getMessage());
         }
         UserSession builtSession = buildNewUserSession(userId, inetAddr, userAgent, refreshToken);
         return sessionRepository.save(builtSession);
@@ -108,5 +108,10 @@ public class UserSessionService {
                 .ipAddress(ipAddress)
                 .userAgent(userAgent)
                 .build());
+    }
+
+    @Transactional
+    public void deleteAllSessionsByUserId(@NonNull Long userId) {
+        sessionRepository.deleteAllByUserId(userId);
     }
 }

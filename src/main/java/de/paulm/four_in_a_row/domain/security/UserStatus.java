@@ -5,5 +5,4 @@ public enum UserStatus {
     UNVERIFIED, // registriert, wartet auf E-Mail-Bestätigung
     BANNED, // temporät gebannt (Fehlverhalten etc.)
     PERMANENT_BANNED, // permanent gebannt (Hacking, etc.)
-    DELETED // soft-deleted / anonymisiert
 }

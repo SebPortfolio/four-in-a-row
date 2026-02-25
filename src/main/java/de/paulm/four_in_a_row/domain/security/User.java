@@ -77,7 +77,7 @@ public class User implements UserDetails {
     private Set<Permission> customPermissions;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "STATUS")
+    @Column(name = "STATUS", nullable = false)
     @Builder.Default
     private UserStatus status = UserStatus.UNVERIFIED;
 
@@ -105,12 +105,12 @@ public class User implements UserDetails {
             return bannedUntil != null && bannedUntil.isBefore(LocalDateTime.now());
         }
 
-        return status != UserStatus.DELETED;
+        return true;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return status != UserStatus.DELETED;
+        return true;
     }
 
     @Override

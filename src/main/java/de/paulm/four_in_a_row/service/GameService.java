@@ -7,6 +7,7 @@ import static de.paulm.four_in_a_row.repository.specs.GameSpecifications.hasStat
 import java.util.List;
 
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -351,5 +352,21 @@ public class GameService {
             }
         }
         return true;
+    }
+
+    @Transactional
+    public void anonymizeGamesForUser(@NonNull Long userId) {
+        PlayerProfile profile = playerProfileService.getProfileByUserId(userId);
+
+        List<Game> activeGames = repository.findAll(
+                Specification.<Game>unrestricted()
+                        .and(hasPlayer(profile.getId()))
+                        .and(hasStatus(GameStatus.IN_PROGRESS).or(hasStatus(GameStatus.PAUSED))));
+
+        activeGames.forEach(game -> {
+            game.setStatus(GameStatus.COMPLETED);
+            game.setResult(GameResult.CANCELLED);
+            log.info("Spiel {} wurde aufgrund von User-Anonymisierung abgebrochen.", game.getId());
+        });
     }
 }

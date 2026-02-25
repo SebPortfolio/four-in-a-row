@@ -102,6 +102,14 @@ public class PlayerProfileService {
                 .orElseThrow(() -> new PlayerProfileNotFoundException(userId, "userId")));
     }
 
+    @Transactional
+    public void anonymizeProfile(@NonNull Long userId) {
+        PlayerProfile profile = getProfileByUserId(userId);
+
+        profile.setUserId(null);
+        editDisplayName(profile, "DeletedPlayer_" + profile.getId());
+    }
+
     private void validateProfile(String displayName) throws IllegalDisplayNameException {
         if (displayName == null || displayName.isBlank()) {
             throw new IllegalDisplayNameException(displayName, "leer");

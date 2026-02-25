@@ -779,6 +779,7 @@ components:
                 - PLAYER_1_WON
                 - PLAYER_2_WON
                 - DRAW
+                - CANCELLED
             example: PLAYER_1_WON
 
         GameMode:

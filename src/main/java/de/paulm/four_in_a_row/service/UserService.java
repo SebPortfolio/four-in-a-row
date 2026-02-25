@@ -91,6 +91,10 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
+    public void deleteUserById(@NonNull Long id) {
+        userRepository.deleteById(id);
+    }
+
     private void validateEmail(String email) throws IllegalEmailException {
         if (email == null || email.isBlank()) {
             throw new IllegalEmailException(email, "null oder blank");

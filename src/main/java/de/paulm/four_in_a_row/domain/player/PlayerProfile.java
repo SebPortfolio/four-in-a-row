@@ -39,12 +39,12 @@ public class PlayerProfile {
     @Column(name = "ID")
     private Long id;
 
-    @Column(name = "USER_ID", unique = true, nullable = false)
-    private Long userId;
+    @Column(name = "USER_ID", unique = true)
+    private Long userId; // bewusst keine Verbindung
 
     @NotNull(message = "Anzeigename darf nicht null sein")
-    @Size(min = 3, message = "Anzeigename muss mindestens 3 Zeichen haben")
-    @Pattern(regexp = "^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){1,28}[a-zA-Z0-9]$", message = "Ungültiger Anzeigename")
+    @Size(min = DISPLAY_NAME_MIN_LENGTH, message = "Anzeigename muss mindestens 3 Zeichen haben")
+    @Pattern(regexp = DISPLAY_NAME_REGEX, message = "Ungültiger Anzeigename")
     @Column(name = "DISPLAY_NAME", nullable = false, unique = true)
     private String displayName;
 
