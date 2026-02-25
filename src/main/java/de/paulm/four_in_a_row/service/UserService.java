@@ -1,8 +1,10 @@
 package de.paulm.four_in_a_row.service;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,11 +18,9 @@ import de.paulm.four_in_a_row.domain.security.User;
 import de.paulm.four_in_a_row.domain.security.UserStatus;
 import de.paulm.four_in_a_row.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -63,28 +63,23 @@ public class UserService implements UserDetailsService {
         return userRepository.existsByEmail(email);
     }
 
+    @NonNull
     public User buildNewUser(String email, String encodedPassword) {
-        return User.builder()
+        return Objects.requireNonNull(User.builder()
                 .email(email)
                 .password(encodedPassword)
                 .roles(Set.of(Role.ROLE_USER))
                 .status(UserStatus.ACTIVE) // TODO: auf UNVERIFIED setzen & Email Verifikation mit Einmalcode
-                .build();
+                .build());
     }
 
-    public User saveUser(User user) throws IllegalArgumentException {
-        if (user == null) {
-            throw new IllegalArgumentException("user darf nicht null sein");
-        }
+    public User saveUser(@NonNull User user) {
         return userRepository.save(user);
     }
 
     @Transactional
-    public void editEmail(Long playerId, String newEmail) throws IllegalArgumentException {
-        User user = this.getUserById(playerId);
-        if (newEmail == null || !newEmail.matches(".+@.+\\..+")) {
-            throw new IllegalEmailException(newEmail, "ungültiges Format");
-        }
+    public void editEmail(User user, String newEmail) throws IllegalEmailException {
+        validateEmail(newEmail);
         user.setEmail(newEmail);
     }
 
@@ -96,19 +91,12 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public void deleteAndAnonymizeUser(Long userId) {
-        User user = getUserById(userId);
-
-        log.info("Anonymisiere User ID: {} aufgrund von Löschanfrage.", userId);
-
-        user.setStatus(UserStatus.DELETED);
-
-        // Anonymisierung
-        // TODO: anzeigename annonymisieren
-        user.setEmail("deleted_" + userId + "@internal.fourinarow.de");
-        user.setPassword("ANONYMIZED_" + LocalDateTime.now());
-
-        user.setBannedUntil(null);
-        user.getRoles().clear();
+    private void validateEmail(String email) throws IllegalEmailException {
+        if (email == null || email.isBlank()) {
+            throw new IllegalEmailException(email, "null oder blank");
+        }
+        if (email.length() > User.EMAIL_MAX_LENGTH) {
+            throw new IllegalEmailException(email, "zu lang, maximal " + User.EMAIL_MAX_LENGTH + " Zeichen");
+        }
     }
 }

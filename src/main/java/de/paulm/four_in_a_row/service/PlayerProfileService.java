@@ -2,6 +2,7 @@ package de.paulm.four_in_a_row.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -42,42 +43,35 @@ public class PlayerProfileService {
 
     public boolean doesProfileExsistById(Long id) throws IllegalArgumentException {
         if (id == null) {
-            throw new IllegalArgumentException("Spieler-Profil-ID darf nicht null sein");
+            throw new IllegalArgumentException("id darf nicht null sein");
         }
 
         return repository.existsById(id);
     }
 
     @NonNull
-    @SuppressWarnings("null")
     public PlayerProfile getProfileById(Long id) throws PlayerProfileNotFoundException, IllegalArgumentException {
         if (id == null) {
-            throw new IllegalArgumentException("Spieler-Profil-ID darf nicht null sein");
+            throw new IllegalArgumentException("id darf nicht null sein");
         }
-        return repository.findById(id)
-                .orElseThrow(() -> new PlayerProfileNotFoundException(id, "id"));
+        return Objects.requireNonNull(
+                repository.findById(id)
+                        .orElseThrow(() -> new PlayerProfileNotFoundException(id, "id")));
     }
 
     @NonNull
-    @SuppressWarnings("null")
     public PlayerProfile getProfileByIdWithStatistic(Long id)
             throws PlayerProfileNotFoundException, IllegalArgumentException {
         if (id == null) {
-            throw new IllegalArgumentException("Spieler-Profil-ID darf nicht null sein");
+            throw new IllegalArgumentException("id darf nicht null sein");
         }
-        return repository.findByIdWithStatistic(id)
-                .orElseThrow(() -> new PlayerProfileNotFoundException(id, "id"));
+        return Objects.requireNonNull(repository.findByIdWithStatistic(id)
+                .orElseThrow(() -> new PlayerProfileNotFoundException(id, "id")));
     }
 
     @Transactional
-    public void editDisplayName(Long playerId, String newName) throws IllegalArgumentException {
-        PlayerProfile profile = this.getProfileById(playerId);
-        if (newName == null || newName.isBlank()) {
-            throw new IllegalDisplayNameException(newName, "Anzeigename darf nicht leer sein");
-        }
-        if (newName.length() < 3) {
-            throw new IllegalDisplayNameException(newName, "Anzeigename muss mindestens 3 Zeichen haben");
-        }
+    public void editDisplayName(PlayerProfile profile, String newName) throws IllegalArgumentException {
+        validateProfile(newName);
         profile.setDisplayName(newName);
     }
 
@@ -90,16 +84,34 @@ public class PlayerProfileService {
         return repository.save(profile);
     }
 
+    @NonNull
     private PlayerProfile buildInitalProfile(Long userId, String displayName) {
-        return PlayerProfile.builder()
+        return Objects.requireNonNull(PlayerProfile.builder()
                 .userId(userId)
                 .displayName(displayName)
                 .registeredOn(LocalDate.now())
-                .build();
+                .build());
     }
 
+    @NonNull
     public PlayerProfile getProfileByUserId(Long userId) {
-        return repository.findByUserId(userId)
-                .orElseThrow(() -> new PlayerProfileNotFoundException(userId, "userId"));
+        if (userId == null) {
+            throw new IllegalArgumentException("userId darf nicht null sein");
+        }
+        return Objects.requireNonNull(repository.findByUserId(userId)
+                .orElseThrow(() -> new PlayerProfileNotFoundException(userId, "userId")));
+    }
+
+    private void validateProfile(String displayName) throws IllegalDisplayNameException {
+        if (displayName == null || displayName.isBlank()) {
+            throw new IllegalDisplayNameException(displayName, "leer");
+        }
+        if (displayName.length() < PlayerProfile.DISPLAY_NAME_MIN_LENGTH) {
+            throw new IllegalDisplayNameException(displayName,
+                    "muss mindestens " + PlayerProfile.DISPLAY_NAME_MIN_LENGTH + " Zeichen haben");
+        }
+        if (!displayName.matches(PlayerProfile.DISPLAY_NAME_REGEX)) {
+            throw new IllegalDisplayNameException(displayName, "ungültiges Format");
+        }
     }
 }

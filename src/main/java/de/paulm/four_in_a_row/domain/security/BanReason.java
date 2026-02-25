@@ -1,5 +1,10 @@
 package de.paulm.four_in_a_row.domain.security;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum BanReason {
     INAPPROPRIATE_USERNAME("Dein Benutzername verstößt gegen unsere Richtlinien."),
     CHEATING("Es wurden unzulässige Modifikationen oder Verhaltensweisen erkannt."),
@@ -8,12 +13,4 @@ public enum BanReason {
     OTHER("Dein Account wurde aufgrund eines Verstoßes gesperrt.");
 
     private final String description;
-
-    BanReason(String description) {
-        this.description = description;
-    }
-
-    public String getDescription() {
-        return description;
-    }
 }

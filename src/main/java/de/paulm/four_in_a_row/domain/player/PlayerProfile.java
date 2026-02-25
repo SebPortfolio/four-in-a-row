@@ -31,6 +31,9 @@ import lombok.extern.slf4j.Slf4j;
 @Table(name = "PLAYER_PROFILE")
 public class PlayerProfile {
 
+    public static final int DISPLAY_NAME_MIN_LENGTH = 3;
+    public static final String DISPLAY_NAME_REGEX = "^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){1,28}[a-zA-Z0-9]$";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")

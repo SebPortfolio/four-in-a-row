@@ -1,7 +1,9 @@
 package de.paulm.four_in_a_row.service;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,13 +60,14 @@ public class PlayerStatisticService {
         statistic.setLastPlayedOn(LocalDate.now());
     }
 
+    @NonNull
     public PlayerStatistic buildInitialStatistic(PlayerProfile profile) {
-        return PlayerStatistic.builder()
+        return Objects.requireNonNull(PlayerStatistic.builder()
                 .profile(profile)
                 .totalGames(0)
                 .gamesWon(0)
                 .gamesLost(0)
                 .gamesSurrendered(0)
-                .build();
+                .build());
     }
 }

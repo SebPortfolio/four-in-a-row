@@ -23,7 +23,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,13 +41,16 @@ import lombok.Setter;
 @Table(name = "APP_USER") // User ist SQL-Keyword
 public class User implements UserDetails {
 
+    public static final int EMAIL_MAX_LENGTH = 254;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private Long id;
 
-    @NotNull(message = "E-Mail darf nicht null sein")
-    @Size(min = 5, message = "E-Mail muss mindestens 5 Zeichen haben")
+    @NotBlank(message = "Email darf nicht leer sein")
+    @Email(message = "Bitte eine gültige Email-Adresse angeben")
+    @Size(max = EMAIL_MAX_LENGTH, message = "Email darf nicht mehr als" + EMAIL_MAX_LENGTH + " Zeichen haben")
     @Column(name = "EMAIL", nullable = false, unique = true)
     private String email;
 

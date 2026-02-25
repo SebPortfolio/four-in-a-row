@@ -3,9 +3,11 @@ package de.paulm.four_in_a_row.service;
 import java.net.InetAddress;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import de.paulm.four_in_a_row.domain.exceptions.UserSessionNotFoundException;
@@ -87,15 +89,17 @@ public class UserSessionService {
 
     private boolean checkAndHandleTokenReuse(UserSession oldSession) {
         if (oldSession.isInvalidated()) {
-            logoutEverywhere(oldSession.getUserId());
+            Long userId = Objects.requireNonNull(oldSession.getUserId());
+            deleteAllSessionsByUserId(userId);
             return true;
         }
         return false;
     }
 
-    private UserSession buildNewUserSession(Long userId, InetAddress ipAddress,
-            String userAgent, String refreshToken) {
-        return UserSession.builder()
+    @NonNull
+    private UserSession buildNewUserSession(Long userId, @Nullable InetAddress ipAddress,
+            @Nullable String userAgent, String refreshToken) {
+        return Objects.requireNonNull(UserSession.builder()
                 .userId(userId)
                 .refreshToken(refreshToken)
                 .invalidated(false)
@@ -103,6 +107,6 @@ public class UserSessionService {
                 .lastUsedAt(LocalDateTime.now())
                 .ipAddress(ipAddress)
                 .userAgent(userAgent)
-                .build();
+                .build());
     }
 }
