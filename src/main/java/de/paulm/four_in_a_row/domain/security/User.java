@@ -1,8 +1,12 @@
 package de.paulm.four_in_a_row.domain.security;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -61,7 +65,12 @@ public class User implements UserDetails {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "USER_ROLES", joinColumns = @JoinColumn(name = "USER_ID"))
     @Enumerated(EnumType.STRING)
-    private Set<Role> authorities; // Roles are simplified for illustration
+    private Set<Role> roles;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "USER_PERMISSIONS", joinColumns = @JoinColumn(name = "USER_ID"))
+    @Enumerated(EnumType.STRING)
+    private Set<Permission> customPermissions;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS")
@@ -103,5 +112,25 @@ public class User implements UserDetails {
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        Set<SimpleGrantedAuthority> authorities = roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.name()))
+                .collect(Collectors.toSet());
+
+        roles.stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(permission -> new SimpleGrantedAuthority(permission.getValue()))
+                .forEach(authorities::add);
+
+        if (customPermissions != null) {
+            customPermissions.stream()
+                    .map(permission -> new SimpleGrantedAuthority(permission.getValue()))
+                    .forEach(authorities::add);
+        }
+
+        return authorities;
     }
 }

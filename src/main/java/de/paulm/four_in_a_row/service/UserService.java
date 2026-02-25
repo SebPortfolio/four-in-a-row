@@ -67,7 +67,7 @@ public class UserService implements UserDetailsService {
         return User.builder()
                 .email(email)
                 .password(encodedPassword)
-                .authorities(Set.of(Role.ROLE_USER))
+                .roles(Set.of(Role.ROLE_USER))
                 .status(UserStatus.ACTIVE) // TODO: auf UNVERIFIED setzen & Email Verifikation mit Einmalcode
                 .build();
     }
@@ -109,6 +109,6 @@ public class UserService implements UserDetailsService {
         user.setPassword("ANONYMIZED_" + LocalDateTime.now());
 
         user.setBannedUntil(null);
-        user.getAuthorities().clear();
+        user.getRoles().clear();
     }
 }

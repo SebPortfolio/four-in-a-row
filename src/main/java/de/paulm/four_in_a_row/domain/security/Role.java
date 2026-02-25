@@ -1,23 +1,29 @@
 package de.paulm.four_in_a_row.domain.security;
 
-import org.springframework.security.core.GrantedAuthority;
+import java.util.Set;
 
-public enum Role implements GrantedAuthority {
-    ROLE_USER("USER"),
-    ROLE_ADMIN("ADMIN");
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-    private String value;
+@Getter
+@RequiredArgsConstructor
+public enum Role {
+    ROLE_USER(Set.of(
+            Permission.USER_VIEW_SELF,
+            Permission.USER_WRITE_SELF,
+            Permission.SESSION_VIEW,
+            Permission.SESSION_DELETE,
+            Permission.PLAYER_VIEW,
+            Permission.PLAYER_WRITE,
+            Permission.PLAYER_STATS_VIEW,
+            Permission.GAME_VIEW,
+            Permission.GAME_CREATE,
+            Permission.GAME_PLAY,
+            Permission.GAME_SURRENDER)),
 
-    Role(String value) {
-        this.value = value;
-    }
+    ROLE_ADMIN(Set.of(
+            Permission.USER_ADMIN,
+            Permission.GAME_DELETE));
 
-    public String getValue() {
-        return this.value;
-    }
-
-    @Override
-    public String getAuthority() {
-        return name();
-    }
+    private final Set<Permission> permissions;
 }

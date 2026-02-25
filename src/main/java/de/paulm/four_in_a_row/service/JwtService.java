@@ -43,11 +43,11 @@ public class JwtService {
         Map<String, Object> extraClaims = new HashMap<>();
         if (userDetails instanceof User user) {
             extraClaims.put("id", user.getId());
-            List<String> roles = user.getAuthorities()
+            List<String> authorities = user.getAuthorities()
                     .stream()
                     .map(GrantedAuthority::getAuthority)
                     .toList();
-            extraClaims.put("roles", roles);
+            extraClaims.put("authorities", authorities);
         }
         return buildAccessToken(extraClaims, userDetails, jwtExpiration);
     }
