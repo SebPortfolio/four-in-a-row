@@ -22,8 +22,11 @@ public enum Role {
             Permission.GAME_SURRENDER)),
 
     ROLE_ADMIN(Set.of(
-            Permission.USER_ADMIN,
-            Permission.GAME_DELETE));
+            Permission.USERS_ADMIN,
+            Permission.USERS_VIEW,
+            Permission.GAME_DELETE)),
+
+    ROLE_LUCIFER(Set.of(Permission.values())); // god mode
 
     private final Set<Permission> permissions;
 }

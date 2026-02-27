@@ -16,6 +16,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 @Slf4j
 @Table(name = "PLAYER_PROFILE")
+@EqualsAndHashCode(exclude = "statistic")
 public class PlayerProfile {
 
     public static final int DISPLAY_NAME_MIN_LENGTH = 3;
@@ -56,5 +58,5 @@ public class PlayerProfile {
     private LocalDate registeredOn;
 
     @OneToOne(mappedBy = "profile", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private PlayerStatistic statistic;
+    private PlayerStatistic statistic; // TODO: Pro Spielmodus eine Statistik
 }

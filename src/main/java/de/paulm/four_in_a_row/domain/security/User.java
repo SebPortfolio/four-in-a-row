@@ -1,7 +1,9 @@
 package de.paulm.four_in_a_row.domain.security;
 
+import java.beans.Transient;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -66,15 +68,17 @@ public class User implements UserDetails {
     @Column(name = "LAST_PASSWORD_CHANGE")
     private LocalDateTime lastPasswordChangeAt;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @Builder.Default
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "USER_ROLES", joinColumns = @JoinColumn(name = "USER_ID"))
     @Enumerated(EnumType.STRING)
-    private Set<Role> roles;
+    private Set<Role> roles = new HashSet<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @Builder.Default
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "USER_PERMISSIONS", joinColumns = @JoinColumn(name = "USER_ID"))
     @Enumerated(EnumType.STRING)
-    private Set<Permission> customPermissions;
+    private Set<Permission> customPermissions = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS", nullable = false)
@@ -82,7 +86,7 @@ public class User implements UserDetails {
     private UserStatus status = UserStatus.UNVERIFIED;
 
     @Column(name = "BANNED_UNTIL")
-    private LocalDateTime bannedUntil;
+    private LocalDateTime bannedUntil; // TODO: Eigene Entity Bann um somit mehr Infos und eine Historie zu haben
 
     @Column(name = "INTERNAL_BAN_NOTE")
     private String internalBanNote; // Für das Admin-Team (was genau ist passiert?)
@@ -119,6 +123,8 @@ public class User implements UserDetails {
     }
 
     @Override
+    @Transient
+    // @JsonIgnore // ggf. für Sicherheit
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<SimpleGrantedAuthority> authorities = roles.stream()
                 .map(role -> new SimpleGrantedAuthority(role.name()))
