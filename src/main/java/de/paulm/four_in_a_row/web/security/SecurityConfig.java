@@ -39,7 +39,8 @@ public class SecurityConfig {
     private static final String[] CSRF_WHITE_LIST_URL = {
             "/api/v1/auth/login",
             "/api/v1/auth/register",
-            "/api/v1/auth/refresh"
+            "/api/v1/auth/refresh",
+            "/h2-console/**"
     };
     private static final String[] AUTH_WHITE_LIST_URL = {
             "/api/v1/auth/login",
@@ -48,7 +49,8 @@ public class SecurityConfig {
             "/swagger-ui.html",
             "/swagger-ui/**",
             "/api-docs/**",
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            "/h2-console/**"
     };
 
     @Bean
@@ -68,6 +70,8 @@ public class SecurityConfig {
                         .csrfTokenRepository(tokenRepository)
                         // 2. Erforderlich für neuere Spring Security Versionen (Spa-Support)
                         .csrfTokenRequestHandler(requestHandler))
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin()))
                 // rate limit as early as possible
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth

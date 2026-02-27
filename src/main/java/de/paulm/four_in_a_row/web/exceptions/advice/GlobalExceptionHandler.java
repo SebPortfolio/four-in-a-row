@@ -15,11 +15,14 @@ import org.springframework.web.context.request.WebRequest;
 import de.paulm.four_in_a_row.domain.exceptions.IllegalDisplayNameException;
 import de.paulm.four_in_a_row.domain.exceptions.PlayerProfileNotFoundException;
 import de.paulm.four_in_a_row.domain.exceptions.PlayerStatisticNotFoundException;
+import de.paulm.four_in_a_row.domain.exceptions.UserSessionNotFoundException;
 import de.paulm.four_in_a_row.web.exceptions.ForbiddenException;
 import de.paulm.four_in_a_row.web.exceptions.RateLimitExceededException;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler({ PlayerStatisticNotFoundException.class, PlayerProfileNotFoundException.class })
@@ -119,6 +122,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
+    @ExceptionHandler(UserSessionNotFoundException.class)
+    public ResponseEntity<ApiError> handleInvalidRefreshToken(UserSessionNotFoundException ex, WebRequest request) {
+        ApiError error = new ApiError(
+                "Ungültiges RefreshToken",
+                HttpStatus.UNAUTHORIZED,
+                getDescriptionWithoutContextInfo(request),
+                Map.of());
+        log.warn("RefreshToken ungültig: {}", ex.getMessage());
+        return ResponseEntity.badRequest().body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGlobalException(Exception ex, WebRequest request) {
         ApiError error = new ApiError(
@@ -126,6 +140,7 @@ public class GlobalExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 getDescriptionWithoutContextInfo(request),
                 Map.of());
+        log.error("Unerwarteter Fehler: ", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
