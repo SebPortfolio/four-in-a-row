@@ -1,5 +1,6 @@
 package de.paulm.four_in_a_row.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,4 +21,6 @@ public interface PlayerProfileRepository extends JpaRepository<PlayerProfile, Lo
     List<PlayerProfile> findByDisplayNameContainingIgnoreCase(String displayName);
 
     Optional<PlayerProfile> findByUserId(Long userId);
+
+    List<PlayerProfile> findAllByUserIdIn(Collection<Long> userIds);
 }
