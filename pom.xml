@@ -177,6 +177,13 @@
                                 <useTags>true</useTags>
                                 <dateLibrary>java8</dateLibrary>
                             </configOptions>
+
+                            <typeMappings>
+                                <typeMapping>DateTime=LocalDateTime</typeMapping>
+                            </typeMappings>
+                            <importMappings>
+                                <importMapping>LocalDateTime=java.time.LocalDateTime</importMapping>
+                            </importMappings>
                         </configuration>
                     </execution>
                 </executions>

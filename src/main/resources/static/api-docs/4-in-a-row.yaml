@@ -14,8 +14,12 @@ tags:
       description: Endpunkt zur Verwaltung von Spielen
     - name: Player
       description: Endpunkt zur Verwaltung von Spielern
+    - name: User
+      description: Endpunkt zur Verwaltung von Usern
+    - name: User-Administration
+      description: Endpunkt zur administrativen Verwaltung von Usern
     - name: Auth
-      description: Endpunkt zur Verwaltung von Benutzern
+      description: Endpunkt zur Verwaltung der Authentifizierung
 
 paths:
     '/api/v1/games':
@@ -316,6 +320,366 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Player'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/users':
+        get:
+            summary: Erhalte alle User
+            operationId: getUsers
+            x-webclient-blocking: true
+            tags:
+                - User
+            responses:
+                '200':
+                    description: Ok - User-Liste abgerufen
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/User'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/users/{userId}':
+        parameters:
+            - in: path
+              name: userId
+              required: true
+              schema:
+                  $ref: '#/components/schemas/UserId'
+        get:
+            summary: Erhalte einen spezifischen User
+            operationId: getUserById
+            x-webclient-blocking: true
+            tags:
+                - User
+            responses:
+                '200':
+                    description: Ok - User abgerufen
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+        patch:
+            summary: Update einen User
+            operationId: updateUser
+            x-webclient-blocking: true
+            tags:
+                - User
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserUpdateRequest'
+            responses:
+                '200':
+                    description: Ok - User aktualisiert
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/User'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+        delete:
+            summary: Lösche User und anonymisiere das Profil
+            operationId: deleteUser
+            x-webclient-blocking: true
+            tags:
+                - User
+            responses:
+                '204':
+                    description: NoContent - User gelöscht und Profil anonymisieren
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/administration/users':
+        get:
+            summary: Erhalte alle User im Admin-Bereich
+            operationId: getUsersAsAdmin
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            responses:
+                '200':
+                    description: Ok - User-Liste abgerufen
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/UserAdmin'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+        post:
+            summary: Erstelle einen User, abseits des normalen Registrierungspfades
+            operationId: createUserAsAdmin
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserAdminCreateRequest'
+            responses:
+                '201':
+                    description: Ok - User erstellt
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserAdmin'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/administration/users/{userId}':
+        parameters:
+            - in: path
+              name: userId
+              required: true
+              schema:
+                  $ref: '#/components/schemas/UserId'
+        get:
+            summary: Erhalte einen bestimmten User anhand seiner Id
+            operationId: getUserByIdAsAdmin
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            responses:
+                '200':
+                    description: Ok - einen User abgerufen
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserAdmin'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+        patch:
+            summary: Update User-Stammdaten
+            operationId: updateUserAsAdmin
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UserAdminUpdateRequest'
+            responses:
+                '200':
+                    description: Ok - User aktualisiert
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserAdmin'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+        delete:
+            summary: Lösche User als Admin und anonymisiere das Profil
+            operationId: deleteUserAsAdmin
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            responses:
+                '204':
+                    description: NoContent - User gelöscht und Profil anonymisieren
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    # Für temporäre Banns (mit Datum)
+    '/api/v1/administration/users/{userId}/ban':
+        parameters:
+            - in: path
+              name: userId
+              required: true
+              schema:
+                  $ref: '#/components/schemas/UserId'
+        post:
+            summary: User temporär bannen
+            operationId: banUser
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/BanRequest'
+            responses:
+                '200':
+                    description: Ok - User erfolgreich gebannt
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserAdmin'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    # Für permanente Banns
+    '/api/v1/administration/users/{userId}/ban-permanent':
+        parameters:
+            - in: path
+              name: userId
+              required: true
+              schema:
+                  $ref: '#/components/schemas/UserId'
+        post:
+            summary: User permanent bannen
+            operationId: banUserPermanent
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/BanPermanentRequest'
+            responses:
+                '200':
+                    description: Ok - User erfolgreich gebannt
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserAdmin'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/administration/users/{userId}/unban':
+        parameters:
+            - in: path
+              name: userId
+              required: true
+              schema:
+                  $ref: '#/components/schemas/UserId'
+        post:
+            summary: User entbannen
+            operationId: unbanUser
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UnbanRequest'
+            responses:
+                '200':
+                    description: Ok - User erfolgreich entbannt
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserAdmin'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -808,7 +1172,7 @@ components:
                     $ref: '#/components/schemas/PlayerId'
                 userId:
                     description: Id des zugehörigen Users
-                    $ref: '#/components/schemas/EntityId'
+                    $ref: '#/components/schemas/UserId'
                 displayName:
                     description: Anzeigename des Spielers
                     $ref: '#/components/schemas/DisplayName'
@@ -991,7 +1355,7 @@ components:
             properties:
                 userId:
                     description: Id des Users
-                    $ref: '#/components/schemas/EntityId'
+                    $ref: '#/components/schemas/UserId'
                 email:
                     description: Email des Users
                     $ref: '#/components/schemas/Email'
@@ -1006,30 +1370,205 @@ components:
                     description: Flache Liste ALLER effektiven Permission-Strings (Rollen + Custom)
                     items:
                         type: string
-                    example: ['game.match.play', 'user.account.view-self']
+                        uniqueItems: true
+                    example: ['GAME_PLAY', 'USER_VIEW_SELF', 'ADMIN']
 
-        Permission:
-            type: object
-            description: Berechtigung
-            properties:
-                name:
-                    type: string
-                    example: 'game.match.play'
-                description:
-                    type: string
-                    example: 'Erlaubt dem Spieler, Züge in einem Spiel auszuführen.'
+        PermissionName:
+            description: Name einer Berechtigungen (zum sehen, bearbeiten, löschen, administrieren etc.)
+            type: string
 
-        Role:
+        RoleName:
+            description: Name einer Rolle (Container für Berechtigungen)
+            type: string
+
+        UserStatus:
+            type: string
+            description: Status des Users
+            enum:
+                - ACTIVE
+                - UNVERIFIED
+                - BANNED
+                - PERMANENT_BANNED
+
+        BanReason:
+            type: string
+            description: Grobe technische Kategorisierung des Banns
+            enum:
+                - INAPPROPRIATE_USERNAME
+                - CHEATING
+                - BEHAVIOR
+                - SPAM
+                - OTHER
+
+        UserId:
+            description: Einzigartige Id eines Users
+            $ref: '#/components/schemas/EntityId'
+        User:
             type: object
-            description: Rolle als Container für Berechtigungen
+            description: vollständiger User zur adminseitigen Verwaltung
             properties:
-                name:
-                    type: string
-                    example: 'ROLE_USER'
-                permissions:
+                id:
+                    $ref: '#/components/schemas/UserId'
+                displayName:
+                    $ref: '#/components/schemas/DisplayName'
+                email:
+                    $ref: '#/components/schemas/Email'
+                roles:
                     type: array
                     items:
-                        $ref: '#/components/schemas/Permission'
+                        $ref: '#/components/schemas/RoleName'
+                    description: alle Rollen des Users
+                lastPasswordChangeAt:
+                    description: Zeitpunkt der letzten Passwortänderung
+                    type: string
+                    format: date-time
+                status:
+                    $ref: '#/components/schemas/UserStatus'
+                bannedUntil:
+                    description: Falls temporär gebannt, Enddatum des Banns
+                    type: string
+                    format: date-time
+                banReason:
+                    $ref: '#/components/schemas/BanReason'
+
+        UserUpdateRequest:
+            type: object
+            description: Modell für änderbare Felder eines Users
+            properties:
+                displayName:
+                    description: geänderter displayName
+                    $ref: '#/components/schemas/DisplayName'
+                email:
+                    description: geänderte E-Mail Adresse
+                    $ref: '#/components/schemas/Email'
+
+        UserAdmin:
+            type: object
+            description: vollständiger User zur adminseitigen Verwaltung
+            required:
+                - id
+                - displayName
+                - email
+                - status
+            properties:
+                id:
+                    $ref: '#/components/schemas/UserId'
+                displayName:
+                    $ref: '#/components/schemas/DisplayName'
+                email:
+                    $ref: '#/components/schemas/Email'
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RoleName'
+                    description: alle Rollen des Users
+                customPermissions:
+                    description: Gesondert zugeordnete Berechtigungen
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PermissionName'
+                lastPasswordChangeAt:
+                    description: Zeitpunkt der letzten Passwortänderung
+                    type: string
+                    format: date-time
+                status:
+                    $ref: '#/components/schemas/UserStatus'
+                bannedUntil:
+                    description: Falls temporär gebannt, Endzeitpunkt des Banns
+                    type: string
+                    format: date-time
+                banReason:
+                    $ref: '#/components/schemas/BanReason'
+                internalBanNote:
+                    description: interne admin Bannnotiz
+                    type: string
+
+        # Password wird im backend automatisch generiert und als Einmalpassword gesetzt
+        UserAdminCreateRequest:
+            type: object
+            description: Modell für die administrative erstellen eines Users
+            required:
+                - email
+                - displayName
+            properties:
+                email:
+                    description: initial gesetzte E-Mail Adresse
+                    $ref: '#/components/schemas/Email'
+                displayName:
+                    description: initial gesetzter displayName
+                    $ref: '#/components/schemas/DisplayName'
+                roles:
+                    description: inital gesetzte Rollen
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RoleName'
+                customPermissions:
+                    description: inital gesetzte benutzerdefinierte Berechtigungen
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PermissionName'
+
+        UserAdminUpdateRequest:
+            type: object
+            description: Modell für administrativ änderbare Felder eines Users
+            properties:
+                displayName:
+                    description: geänderter displayName
+                    $ref: '#/components/schemas/DisplayName'
+                email:
+                    description: geänderte E-Mail Adresse
+                    $ref: '#/components/schemas/Email'
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RoleName'
+                    description: geänderte Rollen des Users
+                customPermissions:
+                    description: geänderte, gesondert zugeordnete Berechtigungen
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PermissionName'
+
+        BanRequest:
+            type: object
+            description: Model zum erstellen eines temporären Banns
+            required:
+                - bannedUntil
+                - banReason
+                - internalBanNote
+            properties:
+                bannedUntil:
+                    type: string
+                    format: date-time
+                    description: Endzeitpunkt des Banns
+                banReason:
+                    $ref: '#/components/schemas/BanReason'
+                internalBanNote:
+                    description: interne admin Bannnotiz
+                    type: string
+
+        BanPermanentRequest:
+            type: object
+            description: Model zum erstellen eines permanenten Banns
+            required:
+                - banReason
+                - internalBanNote
+            properties:
+                banReason:
+                    $ref: '#/components/schemas/BanReason'
+                internalBanNote:
+                    description: interne admin Bannnotiz
+                    type: string
+
+        UnbanRequest:
+            type: object
+            description: Model zum entwerten eines Banns
+            required:
+                - reason
+            properties:
+                reason:
+                    type: string
+                    description: Begründung für manuelle Entbannung
 
     #    Steam64:
     #      type: integer
