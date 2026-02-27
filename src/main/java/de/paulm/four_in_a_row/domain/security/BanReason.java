@@ -6,11 +6,12 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum BanReason {
-    INAPPROPRIATE_USERNAME("Dein Benutzername verstößt gegen unsere Richtlinien."),
+    // description dient nur für Logs
+    INAPPROPRIATE_USERNAME("Der Benutzername verstößt gegen unsere Richtlinien."),
     CHEATING("Es wurden unzulässige Modifikationen oder Verhaltensweisen erkannt."),
-    BEHAVIOR("Dein Verhalten gegenüber anderen Spielern war unangemessen."),
-    SPAM("Dein Account wurde wegen Spam-Aktivitäten markiert."),
-    OTHER("Dein Account wurde aufgrund eines Verstoßes gesperrt.");
+    BEHAVIOR("Das Verhalten gegenüber anderen Spielern war unangemessen."),
+    SPAM("Es wurden Spam-Aktivitäten des Accounts registriert."),
+    OTHER("Der Account wurde aufgrund eines Verstoßes gesperrt.");
 
     private final String description;
 }

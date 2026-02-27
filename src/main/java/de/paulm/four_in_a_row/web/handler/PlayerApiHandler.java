@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import de.paulm.api.PlayerApiDelegate;
 import de.paulm.four_in_a_row.domain.player.PlayerProfile;
+import de.paulm.four_in_a_row.domain.player.PlayerStatistic;
 import de.paulm.four_in_a_row.mapper.PlayerMapper;
 import de.paulm.four_in_a_row.service.PlayerProfileService;
 import de.paulm.four_in_a_row.service.PlayerStatisticService;
@@ -30,9 +31,9 @@ public class PlayerApiHandler implements PlayerApiDelegate {
     }
 
     @Override
-    public ResponseEntity<PlayerWdto> getPlayerById(Long playerId) {
-        var profile = playerProfileService.getProfileById(playerId);
-        var statistic = playerStatisticService.getStatisticById(playerId);
+    public ResponseEntity<PlayerWdto> getPlayerById(Long playerId) { // FIXME: warum doppelte Repo Aufrufe?!
+        PlayerProfile profile = playerProfileService.getProfileById(playerId);
+        PlayerStatistic statistic = playerStatisticService.getStatisticById(playerId);
         profile.setStatistic(statistic);
         PlayerWdto playerDto = playerMapper.toWdto(profile);
         return ResponseEntity.ok(playerDto);

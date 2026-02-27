@@ -1,6 +1,7 @@
 package de.paulm.four_in_a_row.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -25,6 +26,10 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final BanService banService;
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 
     @Transactional
     public User getUserById(Long id) throws UserNotFoundException, IllegalArgumentException {
