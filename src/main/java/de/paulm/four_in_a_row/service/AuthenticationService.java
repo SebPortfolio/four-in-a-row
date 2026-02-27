@@ -11,7 +11,7 @@ import de.paulm.four_in_a_row.domain.exceptions.RegistrationException;
 import de.paulm.four_in_a_row.domain.player.PlayerProfile;
 import de.paulm.four_in_a_row.domain.security.AuthUserResponse;
 import de.paulm.four_in_a_row.domain.security.User;
-import de.paulm.four_in_a_row.domain.security.UserContextResponse;
+import de.paulm.four_in_a_row.domain.security.UserProfileAggregate;
 import de.paulm.four_in_a_row.domain.security.UserSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -48,8 +48,8 @@ public class AuthenticationService {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = userSessionService.createSession(user.getId(), ipAdressStr, userAgent).getRefreshToken();
 
-        UserContextResponse userContextResponse = new UserContextResponse(user, playerProfile);
-        return new AuthUserResponse(accessToken, refreshToken, userContextResponse);
+        UserProfileAggregate userProfileAgg = new UserProfileAggregate(user, playerProfile);
+        return new AuthUserResponse(accessToken, refreshToken, userProfileAgg);
     }
 
     public AuthUserResponse login(String email, String password, String ipAdressStr, String userAgent,
@@ -74,7 +74,7 @@ public class AuthenticationService {
             }
         }
 
-        UserContextResponse userContextResponse = buildUserContext(user);
+        UserProfileAggregate userContextResponse = buildUserProfileAggregate(user);
         return new AuthUserResponse(accessToken, newRefreshToken, userContextResponse);
     }
 
@@ -91,17 +91,17 @@ public class AuthenticationService {
 
     public AuthUserResponse refreshSession(String oldRefreshToken) {
         UserSession oldSession = userSessionService.getSessionByRefreshToken(oldRefreshToken);
-        User user = userService.getUserById(oldSession.getUserId());
+        User user = userService.getUserByIdWithRolesAndPermissions(oldSession.getUserId());
 
         String refreshToken = userSessionService.renewRefreshToken(oldRefreshToken, null, null);
         String accessToken = jwtService.generateAccessToken(user);
 
-        UserContextResponse userContext = buildUserContext(user);
-        return new AuthUserResponse(accessToken, refreshToken, userContext);
+        UserProfileAggregate userProfileAgg = buildUserProfileAggregate(user);
+        return new AuthUserResponse(accessToken, refreshToken, userProfileAgg);
     }
 
-    private UserContextResponse buildUserContext(User user) {
+    private UserProfileAggregate buildUserProfileAggregate(User user) {
         PlayerProfile profile = playerProfileService.getProfileByUserId(user.getId());
-        return new UserContextResponse(user, profile);
+        return new UserProfileAggregate(user, profile);
     }
 }

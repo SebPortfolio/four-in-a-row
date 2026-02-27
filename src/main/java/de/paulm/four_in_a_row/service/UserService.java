@@ -37,13 +37,24 @@ public class UserService implements UserDetailsService {
         return banService.checkAndHandleExpiredBan(user);
     }
 
+    @Transactional
+    public User getUserByIdWithRolesAndPermissions(Long id) throws UserNotFoundException, IllegalArgumentException {
+        if (id == null) {
+            throw new IllegalArgumentException("id darf nicht null sein");
+        }
+        User user = userRepository.findByIdWithRolesAndPermissions(id).orElseThrow(
+                () -> new UserNotFoundException());
+
+        return banService.checkAndHandleExpiredBan(user);
+    }
+
     // Businessprozess
     @Transactional
     public User getUserByEmail(String email) throws UserNotFoundException, IllegalArgumentException {
         if (email == null) {
             throw new IllegalArgumentException("email darf nicht null sein");
         }
-        User user = userRepository.findByEmail(email).orElseThrow(
+        User user = userRepository.findByEmailWithRolesAndPermissions(email).orElseThrow(
                 () -> new UserNotFoundException());
         return banService.checkAndHandleExpiredBan(user);
     }
