@@ -30,7 +30,7 @@ public class UserProfileAggregateService {
             throw new IllegalArgumentException("userId darf nicht null sein");
         }
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdWithRolesAndPermissions(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
         PlayerProfile player = playerRepository.findByUserId(userId)
                 .orElseThrow(() -> new PlayerProfileNotFoundException(userId, "userId"));

@@ -26,7 +26,8 @@ public class UserSessionService {
 
     @Transactional
     public void logoutEverywhereButCurrent(Long userId, String currentRefreshToken) {
-        sessionRepository.deleteByUserIdAndRefreshTokenNot(userId, currentRefreshToken);
+        Integer count = sessionRepository.deleteByUserIdAndRefreshTokenNot(userId, currentRefreshToken);
+        log.debug("{} UserSessions gelöscht", count);
     }
 
     @Transactional
@@ -111,6 +112,7 @@ public class UserSessionService {
 
     @Transactional
     public void deleteAllSessionsByUserId(@NonNull Long userId) {
-        sessionRepository.deleteAllByUserId(userId);
+        Integer count = sessionRepository.deleteAllByUserId(userId);
+        log.debug("{} UserSessions gelöscht", count);
     }
 }
