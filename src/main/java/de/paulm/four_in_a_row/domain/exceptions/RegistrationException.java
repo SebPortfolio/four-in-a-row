@@ -1,7 +1,11 @@
 package de.paulm.four_in_a_row.domain.exceptions;
 
-public class RegistrationException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+import de.paulm.four_in_a_row.web.exceptions.advice.ApplicationException;
+
+public class RegistrationException extends ApplicationException {
     public RegistrationException(String msg) {
-        super(msg);
+        super(msg, HttpStatus.BAD_REQUEST, "REGISTRATION_FAILURE");
     }
 }

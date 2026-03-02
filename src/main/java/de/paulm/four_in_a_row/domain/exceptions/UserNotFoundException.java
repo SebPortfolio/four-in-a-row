@@ -1,15 +1,17 @@
 package de.paulm.four_in_a_row.domain.exceptions;
 
-public class UserNotFoundException extends RuntimeException {
+import de.paulm.four_in_a_row.web.exceptions.advice.ResourceNotFoundException;
+
+public class UserNotFoundException extends ResourceNotFoundException {
     public UserNotFoundException() {
-        super("Ungültige Anmeldedaten");
+        super("Ungültige Anmeldedaten", "USER_NOT_FOUND", null);
     }
 
     public UserNotFoundException(Long userId) {
-        super("Kein User mit der userId: " + userId);
+        super("Kein User mit der userId: " + userId, "USER_NOT_FOUND", "userId");
     }
 
     public UserNotFoundException(String email) {
-        super("Kein User mit der email: " + email);
+        super("Kein User mit der email: " + email, "USER_NOT_FOUND", "email");
     }
 }

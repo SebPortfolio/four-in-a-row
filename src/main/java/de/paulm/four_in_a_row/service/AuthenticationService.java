@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import de.paulm.four_in_a_row.domain.exceptions.IllegalDisplayNameException;
 import de.paulm.four_in_a_row.domain.exceptions.RegistrationException;
 import de.paulm.four_in_a_row.domain.player.PlayerProfile;
 import de.paulm.four_in_a_row.domain.security.AuthUserResponse;
@@ -33,11 +34,12 @@ public class AuthenticationService {
         if (userService.existsByEmail(email)) {
             // TODO: Bestätigungsmail an bestehenden User,
             // ob er sich neu registrieren wollte?
-            throw new RegistrationException("Ein Account mit dieser Email ist bereits vergeben!");
+            throw new RegistrationException(
+                    "Die Registrierung konnte nicht abgeschlossen werden. Bitte prüfen Sie Ihre Eingaben");
         }
 
         if (!displayName.matches("^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){1,28}[a-zA-Z0-9]$")) {
-            throw new RegistrationException("DisplayName entspricht nicht den Richtlinien.");
+            throw new IllegalDisplayNameException(displayName, "Entspricht nicht dem geforderten Format");
         }
 
         String encodedPassword = passwordEncoder.encode(password);

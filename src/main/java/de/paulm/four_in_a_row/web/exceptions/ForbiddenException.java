@@ -1,7 +1,11 @@
 package de.paulm.four_in_a_row.web.exceptions;
 
-public class ForbiddenException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+import de.paulm.four_in_a_row.web.exceptions.advice.ApplicationException;
+
+public class ForbiddenException extends ApplicationException {
     public ForbiddenException(String msg) {
-        super(msg);
+        super(msg, HttpStatus.FORBIDDEN, "ACCESS_FORBIDDEN");
     }
 }
