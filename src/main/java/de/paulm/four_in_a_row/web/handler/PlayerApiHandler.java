@@ -25,7 +25,7 @@ public class PlayerApiHandler implements PlayerApiDelegate {
 
     @Override
     public ResponseEntity<List<PlayerWdto>> getAllPlayers(String term, Integer limit) {
-        List<PlayerProfile> profiles = playerProfileService.findProfiles(term, limit);
+        List<PlayerProfile> profiles = playerProfileService.findProfilesByDisplayNameTerm(term, limit);
 
         return ResponseEntity.ok(playerMapper.toWdtoList(profiles));
     }

@@ -23,7 +23,7 @@ public class PlayerProfileService {
     private final PlayerValidationService validationService;
 
     // TODO: limit implementieren
-    public List<PlayerProfile> findProfiles(String term, Integer limit) {
+    public List<PlayerProfile> findProfilesByDisplayNameTerm(String term, Integer limit) {
         if (term == null || term.isBlank()) {
             return repository.findAll();
         }
