@@ -28,7 +28,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "PLAYER_STATISTIC")
-@Check(constraints = "GAMES_LOST >= GAMES_SURRENDERED AND TOTAL_GAMES >= (GAMES_WON + GAMES_LOST)")
+@Check(constraints = "GAMES_LOST >= GAMES_SURRENDERED AND TOTAL_GAMES = (GAMES_WON + GAMES_LOST)")
 public class PlayerStatistic {
 
     @Id
