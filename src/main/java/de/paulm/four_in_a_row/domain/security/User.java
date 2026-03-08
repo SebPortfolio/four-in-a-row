@@ -78,12 +78,14 @@ public class User implements UserDetails {
     @Builder.Default
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "USER_ROLES", joinColumns = @JoinColumn(name = "USER_ID"))
+    @Column(name = "ROLE")
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new HashSet<>();
 
     @Builder.Default
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "USER_PERMISSIONS", joinColumns = @JoinColumn(name = "USER_ID"))
+    @Column(name = "CUSTOM_PERMISSION")
     @Enumerated(EnumType.STRING)
     private Set<Permission> customPermissions = new HashSet<>();
 
