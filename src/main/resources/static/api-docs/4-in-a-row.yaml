@@ -18,6 +18,8 @@ tags:
       description: Endpunkt zur Verwaltung von Usern
     - name: User-Administration
       description: Endpunkt zur administrativen Verwaltung von Usern
+    - name: Ban
+      description: Endpunkt zur administrativen Verwaltung von Banns
     - name: Auth
       description: Endpunkt zur Verwaltung der Authentifizierung
 
@@ -583,24 +585,24 @@ paths:
               schema:
                   $ref: '#/components/schemas/UserId'
         post:
-            summary: User temporär bannen
+            summary: Temporären Bann für User erstellen
             operationId: banUser
             x-webclient-blocking: true
             tags:
-                - User-Administration
+                - Ban
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/BanRequest'
+                            $ref: '#/components/schemas/BanCreateRequest'
             responses:
-                '200':
-                    description: Ok - User erfolgreich gebannt
+                '201':
+                    description: Created - Temporärer Bann erfolgreich erstellt
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/UserAdmin'
+                                $ref: '#/components/schemas/Ban'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -623,24 +625,24 @@ paths:
               schema:
                   $ref: '#/components/schemas/UserId'
         post:
-            summary: User permanent bannen
+            summary: Permanenten Bann für User erstellen
             operationId: banUserPermanent
             x-webclient-blocking: true
             tags:
-                - User-Administration
+                - Ban
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/BanPermanentRequest'
+                            $ref: '#/components/schemas/BanPermanentCreateRequest'
             responses:
-                '200':
-                    description: Ok - User erfolgreich gebannt
+                '201':
+                    description: Created - Permanenter Bann erfolgreich erstellt
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/UserAdmin'
+                                $ref: '#/components/schemas/Ban'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -654,32 +656,85 @@ paths:
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
-    '/api/v1/administration/users/{userId}/unban':
+    '/api/v1/administration/users/{userId}/bans/{banId}/edit':
         parameters:
             - in: path
               name: userId
+              description: Id des Users, dessen Bann bearbeitet werden soll
               required: true
               schema:
                   $ref: '#/components/schemas/UserId'
-        post:
-            summary: User entbannen
-            operationId: unbanUser
+            - in: path
+              name: banId
+              description: Id des Banns, der bearbeitet werden soll
+              required: true
+              schema:
+                  $ref: '#/components/schemas/BanId'
+        put:
+            summary: Bann eines Users bearbeiten/korrigieren
+            operationId: updateBan
             x-webclient-blocking: true
             tags:
-                - User-Administration
+                - Ban
             requestBody:
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/UnbanRequest'
+                            $ref: '#/components/schemas/BanUpdateRequest'
             responses:
                 '200':
-                    description: Ok - User erfolgreich entbannt
+                    description: Ok - Bann erfolgreich bearbeitet
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/UserAdmin'
+                                $ref: '#/components/schemas/Ban'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/administration/users/{userId}/bans/{banId}/cancel':
+        parameters:
+            - in: path
+              name: userId
+              description: Id des Users, dessen Bann aufgehoben werden soll
+              required: true
+              schema:
+                  $ref: '#/components/schemas/UserId'
+            - in: path
+              name: banId
+              description: Id des Banns, der aufgehoben werden soll
+              required: true
+              schema:
+                  $ref: '#/components/schemas/BanId'
+        post:
+            summary: Bann eines Users aufheben
+            operationId: cancelBan
+            x-webclient-blocking: true
+            tags:
+                - Ban
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CancelBanRequest'
+            responses:
+                '200':
+                    description: Ok - Bann des Users erfolgreich aufgehoben
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Ban'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -1387,8 +1442,7 @@ components:
             enum:
                 - ACTIVE
                 - UNVERIFIED
-                - BANNED
-                - PERMANENT_BANNED
+                - DEACTIVATED
 
         BanReason:
             type: string
@@ -1424,12 +1478,15 @@ components:
                     format: date-time
                 status:
                     $ref: '#/components/schemas/UserStatus'
-                bannedUntil:
-                    description: Falls temporär gebannt, Enddatum des Banns
-                    type: string
-                    format: date-time
-                banReason:
-                    $ref: '#/components/schemas/BanReason'
+                activeBan:
+                    $ref: '#/components/schemas/Ban'
+                    nullable: true
+                    description: Der aktuell wirksame Bann, falls vorhanden
+                banHistory:
+                    type: array
+                    items:
+                        description: Liste von allen Banns des Users
+                        $ref: '#/components/schemas/Ban'
 
         UserUpdateRequest:
             type: object
@@ -1473,15 +1530,15 @@ components:
                     format: date-time
                 status:
                     $ref: '#/components/schemas/UserStatus'
-                bannedUntil:
-                    description: Falls temporär gebannt, Endzeitpunkt des Banns
-                    type: string
-                    format: date-time
-                banReason:
-                    $ref: '#/components/schemas/BanReason'
-                internalBanNote:
-                    description: interne admin Bannnotiz
-                    type: string
+                activeBan:
+                    $ref: '#/components/schemas/Ban'
+                    nullable: true
+                    description: Der aktuell wirksame Bann, falls vorhanden
+                banHistory:
+                    type: array
+                    items:
+                        description: Liste von allen Banns des Users
+                        $ref: '#/components/schemas/Ban'
 
         # Password wird im backend automatisch generiert und als Einmalpassword gesetzt
         UserAdminCreateRequest:
@@ -1529,46 +1586,159 @@ components:
                     items:
                         $ref: '#/components/schemas/PermissionName'
 
-        BanRequest:
+        BanId:
+            description: Eindeutige Id eines Banns
+            $ref: '#/components/schemas/EntityId'
+        Ban:
+            type: object
+            description: Model einer Bann-Sanktion
+            required:
+                - id
+                - userId
+                - startAt
+                - banReason
+            properties:
+                id:
+                    description: Id des Banns
+                    $ref: '#/components/schemas/BanId'
+                userId:
+                    description: Id des gebannten Users
+                    $ref: '#/components/schemas/UserId'
+                startAt:
+                    description: Startzeitpunkt des Banns
+                    type: string
+                    format: date-time
+                endAt:
+                    description: Endzeitpunkt des Banns
+                    type: string
+                    format: date-time
+                    nullable: true
+                reason:
+                    description: grobe Einordnung des Banngrundes
+                    $ref: '#/components/schemas/BanReason'
+                internalNote:
+                    description: Begründung zur Bannerstellung
+                    type: string
+                cancelledAt:
+                    description: Zeitpunkt der Bannaufhebung
+                    type: string
+                    format: date-time
+                    nullable: true
+                actionHistory:
+                    description: Log-Historie zu Änderungen am Bann
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/BanAction'
+
+        BanCreateRequest:
             type: object
             description: Model zum erstellen eines temporären Banns
             required:
-                - bannedUntil
-                - banReason
-                - internalBanNote
+                - executingUserId
+                - endAt
+                - reason
+                - internalNote
             properties:
-                bannedUntil:
+                executingUserId:
+                    description: Id des ausführenden Users
+                    $ref: '#/components/schemas/UserId'
+                endAt:
                     type: string
                     format: date-time
                     description: Endzeitpunkt des Banns
-                banReason:
+                reason:
+                    description: grobe Einordnung des Banngrundes
                     $ref: '#/components/schemas/BanReason'
-                internalBanNote:
-                    description: interne admin Bannnotiz
+                internalNote:
+                    description: Begründung zur Bannerstellung
                     type: string
 
-        BanPermanentRequest:
+        BanPermanentCreateRequest:
             type: object
             description: Model zum erstellen eines permanenten Banns
             required:
-                - banReason
-                - internalBanNote
+                - executingUserId
+                - reason
+                - internalNote
             properties:
-                banReason:
+                executingUserId:
+                    description: Id des ausführenden Users
+                    $ref: '#/components/schemas/UserId'
+                reason:
+                    description: grobe Einordnung des Banngrundes
                     $ref: '#/components/schemas/BanReason'
-                internalBanNote:
-                    description: interne admin Bannnotiz
+                internalNote:
+                    description: Begründung zur Bannerstellung
                     type: string
 
-        UnbanRequest:
+        BanUpdateRequest:
             type: object
-            description: Model zum entwerten eines Banns
+            description: Request für allgemeine Korrekturen am Bann
             required:
-                - reason
+                - executingUserId
+                - comment
             properties:
-                reason:
+                executingUserId:
+                    description: Id des ausführenden Users
+                    $ref: '#/components/schemas/UserId'
+                newEndAt:
+                    description: Neuer Endzeitpunkt des Banns
                     type: string
-                    description: Begründung für manuelle Entbannung
+                    format: date-time
+                    nullable: true
+                reason:
+                    description: Geänderter Banngrund
+                    $ref: '#/components/schemas/BanReason'
+                internalNote:
+                    description: Begründung zur Bannerstellung
+                    type: string
+                comment:
+                    description: Begrüdnung für die Bearbeitung
+                    $ref: '#/components/schemas/BanActionComment'
+
+        CancelBanRequest:
+            type: object
+            description: Request um einen Bann manuell aufzuheben/ zu beenden
+            required:
+                - executingUserId
+                - comment
+            properties:
+                executingUserId:
+                    description: Id des ausführenden Users
+                    $ref: '#/components/schemas/UserId'
+                comment:
+                    description: Begrüdnung für die Aufhebung
+                    $ref: '#/components/schemas/BanActionComment'
+
+        BanActionComment:
+            description: Änderungskommentar (bspw. Tippfehler korrigiert)
+            type: string
+            minLength: 5
+
+        BanAction:
+            type: object
+            properties:
+                id:
+                    description: Id der BanAction
+                    $ref: '#/components/schemas/EntityId'
+                banId:
+                    description: Id des zugehörigen Banns
+                    $ref: '#/components/schemas/BanId'
+                executingUserId:
+                    description: Id des Users, der diese Aktion ausgeführt hat
+                    $ref: '#/components/schemas/UserId'
+                timeStamp:
+                    description: Zeitstempel der Aktion
+                    type: string
+                    format: date-time
+                comment:
+                    $ref: '#/components/schemas/BanActionComment'
+                oldValue:
+                    description: Zustand des Banns vor der Aktion
+                    type: string
+                newValue:
+                    description: Zustand des Banns nach der Aktion
+                    type: string
 
     #    Steam64:
     #      type: integer

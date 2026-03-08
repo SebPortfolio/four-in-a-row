@@ -2,8 +2,10 @@ package de.paulm.four_in_a_row.domain.security;
 
 import java.beans.Transient;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -13,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -24,10 +27,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -85,15 +92,37 @@ public class User implements UserDetails {
     @Builder.Default
     private UserStatus status = UserStatus.UNVERIFIED;
 
-    @Column(name = "BANNED_UNTIL")
-    private LocalDateTime bannedUntil; // TODO: Eigene Entity Bann um somit mehr Infos und eine Historie zu haben
+    @Setter(AccessLevel.NONE)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("startAt DESC")
+    @Builder.Default
+    private List<Ban> banHistory = new ArrayList<>();
 
-    @Column(name = "INTERNAL_BAN_NOTE")
-    private String internalBanNote; // Für das Admin-Team (was genau ist passiert?)
+    @Column(name = "PLAYER_ID", unique = true)
+    private Long playerId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "BAN_REASON")
-    private BanReason banReason; // für User
+    public Ban getActiveBan() {
+        return banHistory.stream()
+                .filter(Ban::isActive)
+                .sorted((b1, b2) -> {
+                    // Perma-Ban hat Vorrang
+                    if (b1.getEndAt() == null) {
+                        return -1;
+                    }
+                    if (b2.getEndAt() == null) {
+                        return 1;
+                    }
+                    // Ansonsten der Ban, der länger gültig ist
+                    return b2.getEndAt().compareTo(b1.getEndAt());
+                })
+                .findFirst()
+                .orElse(null);
+    }
+
+    public void addBan(@Valid Ban ban) {
+        ban.setUser(this);
+        this.banHistory.add(ban);
+    }
 
     @Override
     public boolean isEnabled() {
@@ -102,14 +131,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        if (status == UserStatus.PERMANENT_BANNED) {
-            return false;
-        }
-        if (status == UserStatus.BANNED) {
-            return bannedUntil != null && bannedUntil.isBefore(LocalDateTime.now());
-        }
-
-        return true;
+        return getActiveBan() == null;
     }
 
     @Override
