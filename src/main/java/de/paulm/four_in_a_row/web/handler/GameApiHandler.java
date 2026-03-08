@@ -1,5 +1,7 @@
 package de.paulm.four_in_a_row.web.handler;
 
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.on;
+
 import java.net.URI;
 import java.util.List;
 
@@ -38,7 +40,8 @@ public class GameApiHandler implements GameApiDelegate {
                 createGameRequest.getPlayer2Id(), gameMode);
         GameWdto gameWdto = gameMapper.toWdto(createdGame);
 
-        URI location = ResourceLocationHelper.create(gameWdto.getId(), "gameId");
+        URI location = ResourceLocationHelper
+                .createFromMethod(on(GameApiDelegate.class).getGameById(createdGame.getId()));
         return ResponseEntity.created(location).body(gameWdto);
     }
 
