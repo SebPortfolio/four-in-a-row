@@ -76,13 +76,13 @@ public class User implements UserDetails {
     private LocalDateTime lastPasswordChangeAt;
 
     @Builder.Default
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "USER_ROLES", joinColumns = @JoinColumn(name = "USER_ID"))
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new HashSet<>();
 
     @Builder.Default
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "USER_PERMISSIONS", joinColumns = @JoinColumn(name = "USER_ID"))
     @Enumerated(EnumType.STRING)
     private Set<Permission> customPermissions = new HashSet<>();
@@ -164,5 +164,19 @@ public class User implements UserDetails {
         }
 
         return authorities;
+    }
+
+    public void updateRoles(Set<Role> newRoles) {
+        this.roles.clear();
+        if (newRoles != null) {
+            this.roles.addAll(newRoles);
+        }
+    }
+
+    public void updateCustomPermissions(Set<Permission> newPermissions) {
+        this.customPermissions.clear();
+        if (newPermissions != null) {
+            this.customPermissions.addAll(newPermissions);
+        }
     }
 }

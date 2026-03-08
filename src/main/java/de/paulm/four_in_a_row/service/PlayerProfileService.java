@@ -8,7 +8,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import de.paulm.four_in_a_row.domain.exceptions.IllegalDisplayNameException;
 import de.paulm.four_in_a_row.domain.exceptions.PlayerProfileNotFoundException;
 import de.paulm.four_in_a_row.domain.player.PlayerProfile;
 import de.paulm.four_in_a_row.domain.player.PlayerStatistic;
@@ -21,6 +20,7 @@ public class PlayerProfileService {
 
     private final PlayerProfileRepository repository;
     private final PlayerStatisticService statisticService;
+    private final PlayerValidationService validationService;
 
     // TODO: limit implementieren
     public List<PlayerProfile> findProfiles(String term, Integer limit) {
@@ -41,7 +41,7 @@ public class PlayerProfileService {
         return repository.findAllWithStatistic();
     }
 
-    public boolean doesProfileExsistById(Long id) throws IllegalArgumentException {
+    public boolean doesProfileExsistById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("id darf nicht null sein");
         }
@@ -50,7 +50,7 @@ public class PlayerProfileService {
     }
 
     @NonNull
-    public PlayerProfile getProfileById(Long id) throws PlayerProfileNotFoundException, IllegalArgumentException {
+    public PlayerProfile getProfileById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("id darf nicht null sein");
         }
@@ -60,8 +60,7 @@ public class PlayerProfileService {
     }
 
     @NonNull
-    public PlayerProfile getProfileByIdWithStatistic(Long id)
-            throws PlayerProfileNotFoundException, IllegalArgumentException {
+    public PlayerProfile getProfileByIdWithStatistic(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("id darf nicht null sein");
         }
@@ -70,13 +69,25 @@ public class PlayerProfileService {
     }
 
     @Transactional
-    public void editDisplayName(PlayerProfile profile, String newName) throws IllegalArgumentException {
-        validateProfile(newName);
-        profile.setDisplayName(newName);
+    public PlayerProfile editDisplayName(Long playerId, String newDisplayName) {
+        PlayerProfile player = getProfileById(playerId);
+        if (newDisplayName != null && !newDisplayName.equals(player.getDisplayName())) {
+            applyDisplayNameChange(player, newDisplayName);
+        }
+        return player;
+    }
+
+    private void applyDisplayNameChange(PlayerProfile profile, String newDisplayName) {
+        validationService.validateDisplayName(newDisplayName, profile.getId());
+        profile.setDisplayName(newDisplayName);
     }
 
     @Transactional
-    public PlayerProfile createProfileForUser(Long userId, String displayName) {
+    public PlayerProfile createPlayerWithProfileAndStatistic(Long userId, String displayName) {
+        if (userId == null) {
+            throw new IllegalArgumentException("userId darf nicht null sein");
+        }
+        validationService.validateDisplayName(displayName, null);
         PlayerProfile profile = this.buildInitalProfile(userId, displayName);
         PlayerStatistic initialStats = statisticService.buildInitialStatistic(profile);
         profile.setStatistic(initialStats);
@@ -107,19 +118,6 @@ public class PlayerProfileService {
         PlayerProfile profile = getProfileByUserId(userId);
 
         profile.setUserId(null);
-        editDisplayName(profile, "DeletedPlayer_" + profile.getId());
-    }
-
-    private void validateProfile(String displayName) throws IllegalDisplayNameException {
-        if (displayName == null || displayName.isBlank()) {
-            throw new IllegalDisplayNameException(displayName, "leer");
-        }
-        if (displayName.length() < PlayerProfile.DISPLAY_NAME_MIN_LENGTH) {
-            throw new IllegalDisplayNameException(displayName,
-                    "muss mindestens " + PlayerProfile.DISPLAY_NAME_MIN_LENGTH + " Zeichen haben");
-        }
-        if (!displayName.matches(PlayerProfile.DISPLAY_NAME_REGEX)) {
-            throw new IllegalDisplayNameException(displayName, "ungültiges Format");
-        }
+        applyDisplayNameChange(profile, "DeletedPlayer_" + profile.getId());
     }
 }

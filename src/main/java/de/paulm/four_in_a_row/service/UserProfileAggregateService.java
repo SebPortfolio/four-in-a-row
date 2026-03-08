@@ -30,7 +30,7 @@ public class UserProfileAggregateService {
             throw new IllegalArgumentException("userId darf nicht null sein");
         }
 
-        User user = userRepository.findByIdWithRolesAndPermissions(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
         PlayerProfile player = playerRepository.findByUserId(userId)
                 .orElseThrow(() -> new PlayerProfileNotFoundException(userId, "userId"));
@@ -39,7 +39,7 @@ public class UserProfileAggregateService {
     }
 
     public List<UserProfileAggregate> getAllAggregates() {
-        List<User> users = userRepository.findAllWithRolesAndPermissions();
+        List<User> users = userRepository.findAll();
         List<Long> userIds = users.stream().map(user -> user.getId()).toList();
         List<PlayerProfile> profiles = getAllProfilesByUserIds(userIds);
 
@@ -53,7 +53,7 @@ public class UserProfileAggregateService {
             return List.of();
         }
 
-        List<User> users = userRepository.findAllByIdInWithRolesAndPermissions(userIds);
+        List<User> users = userRepository.findAllById(userIds);
         List<PlayerProfile> profiles = getAllProfilesByUserIds(userIds);
 
         return combineUsersAndProfiles(users, profiles);

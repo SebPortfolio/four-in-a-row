@@ -23,4 +23,8 @@ public interface PlayerProfileRepository extends JpaRepository<PlayerProfile, Lo
     Optional<PlayerProfile> findByUserId(Long userId);
 
     List<PlayerProfile> findAllByUserIdIn(Collection<Long> userIds);
+
+    boolean existsByDisplayName(String displayName);
+
+    boolean existsByDisplayNameAndIdNot(String displayName, Long id);
 }

@@ -1,19 +1,23 @@
 package de.paulm.four_in_a_row.web.handler;
 
+import java.net.URI;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import de.paulm.api.UserAdministrationApiDelegate;
-import de.paulm.four_in_a_row.domain.security.UserProfileAggregate;
-import de.paulm.four_in_a_row.mapper.UserAdminMapper;
-import de.paulm.four_in_a_row.service.UserProfileAggregateService;
-import de.paulm.model.BanPermanentRequestWdto;
-import de.paulm.model.BanRequestWdto;
-import de.paulm.model.UnbanRequestWdto;
+import de.paulm.four_in_a_row.domain.security.Permission;
+import de.paulm.four_in_a_row.domain.security.Role;
+import de.paulm.four_in_a_row.mapper.SharedSecurityMapper;
+import de.paulm.four_in_a_row.mapper.user.UserAdminMapper;
+import de.paulm.four_in_a_row.service.UserAdministrationService;
+import de.paulm.four_in_a_row.web.dtos.UserAdminCreateRequest;
+import de.paulm.four_in_a_row.web.dtos.UserAdminPatchRequest;
+import de.paulm.four_in_a_row.web.dtos.UserAdminResponse;
+import de.paulm.four_in_a_row.web.util.ResourceLocationHelper;
 import de.paulm.model.UserAdminCreateRequestWdto;
-import de.paulm.model.UserAdminUpdateRequestWdto;
+import de.paulm.model.UserAdminPatchRequestWdto;
 import de.paulm.model.UserAdminWdto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,36 +27,42 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UserAdministrationApiHandler implements UserAdministrationApiDelegate {
 
-    private final UserProfileAggregateService userProfileAggregateService;
-    private final UserAdminMapper userMapper;
+    private final UserAdministrationService userAdministrationService;
+    private final UserAdminMapper userAdminMapper;
+    private final SharedSecurityMapper sharedSecurityMapper;
 
     @Override
     public ResponseEntity<List<UserAdminWdto>> getUsersAsAdmin() {
-        List<UserProfileAggregate> users = userProfileAggregateService.getAllAggregates();
-        log.debug("User aggregiert: {}", users.size());
-        List<UserAdminWdto> wdtos = userMapper.toWdtoList(users);
-        log.debug("Users gemappt");
+        List<UserAdminResponse> userAdminList = userAdministrationService.getUsersAsAdmin();
+        List<UserAdminWdto> wdtos = userAdminMapper.toResponseWdtoList(userAdminList);
         return ResponseEntity.ok(wdtos);
     }
 
     @Override
     public ResponseEntity<UserAdminWdto> getUserByIdAsAdmin(Long userId) {
-        UserProfileAggregate user = userProfileAggregateService.getAggregateByUserId(userId);
-        UserAdminWdto wdto = userMapper.toWdto(user);
+        UserAdminResponse userAdmin = userAdministrationService.getUserByIdAsAdmin(userId);
+        UserAdminWdto wdto = userAdminMapper.toResponseWdto(userAdmin);
         return ResponseEntity.ok(wdto);
     }
 
     @Override
-    public ResponseEntity<UserAdminWdto> createUserAsAdmin(UserAdminCreateRequestWdto userAdminCreateRequestWdto) {
-        // TODO Auto-generated method stub
-        return UserAdministrationApiDelegate.super.createUserAsAdmin(userAdminCreateRequestWdto);
+    public ResponseEntity<UserAdminWdto> createUserAsAdmin(UserAdminCreateRequestWdto requestWdto) {
+        UserAdminCreateRequest request = userAdminMapper.fromCreateRequestWdto(requestWdto);
+        UserAdminResponse response = userAdministrationService.createUser(request);
+        UserAdminWdto responseWdto = userAdminMapper.toResponseWdto(response);
+
+        URI location = ResourceLocationHelper.create(responseWdto.getId(), "userId");
+        return ResponseEntity.created(location).body(responseWdto);
     }
 
     @Override
-    public ResponseEntity<UserAdminWdto> updateUserAsAdmin(Long userId,
-            UserAdminUpdateRequestWdto userAdminUpdateRequestWdto) {
-        // TODO Auto-generated method stub
-        return UserAdministrationApiDelegate.super.updateUserAsAdmin(userId, userAdminUpdateRequestWdto);
+    public ResponseEntity<UserAdminWdto> patchUserAsAdmin(Long userId,
+            UserAdminPatchRequestWdto requestWdto) {
+        UserAdminPatchRequest request = userAdminMapper.fromPatchRequestWdto(requestWdto);
+        UserAdminResponse response = userAdministrationService.patchUser(userId, request);
+        UserAdminWdto responseWdto = userAdminMapper.toResponseWdto(response);
+
+        return ResponseEntity.ok(responseWdto);
     }
 
     @Override
@@ -62,21 +72,14 @@ public class UserAdministrationApiHandler implements UserAdministrationApiDelega
     }
 
     @Override
-    public ResponseEntity<UserAdminWdto> banUser(Long userId, BanRequestWdto banRequestWdto) {
-        // TODO Auto-generated method stub
-        return UserAdministrationApiDelegate.super.banUser(userId, banRequestWdto);
+    public ResponseEntity<List<String>> getAllRoles() {
+        List<String> roles = sharedSecurityMapper.fromRoleArray(Role.values());
+        return ResponseEntity.ok(roles);
     }
 
     @Override
-    public ResponseEntity<UserAdminWdto> banUserPermanent(Long userId,
-            BanPermanentRequestWdto banPermanentRequestWdto) {
-        // TODO Auto-generated method stub
-        return UserAdministrationApiDelegate.super.banUserPermanent(userId, banPermanentRequestWdto);
-    }
-
-    @Override
-    public ResponseEntity<UserAdminWdto> unbanUser(Long userId, UnbanRequestWdto unbanRequestWdto) {
-        // TODO Auto-generated method stub
-        return UserAdministrationApiDelegate.super.unbanUser(userId, unbanRequestWdto);
+    public ResponseEntity<List<String>> getAllPermissions() {
+        List<String> permissions = sharedSecurityMapper.fromPermissionArray(Permission.values());
+        return ResponseEntity.ok(permissions);
     }
 }

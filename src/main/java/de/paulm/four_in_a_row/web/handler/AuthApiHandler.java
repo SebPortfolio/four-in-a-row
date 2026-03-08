@@ -15,10 +15,12 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import de.paulm.api.AuthApiDelegate;
 import de.paulm.four_in_a_row.domain.security.AuthUserResponse;
 import de.paulm.four_in_a_row.domain.security.UserSession;
-import de.paulm.four_in_a_row.mapper.AuthUserResponseMapper;
-import de.paulm.four_in_a_row.mapper.UserSessionMapper;
+import de.paulm.four_in_a_row.mapper.RegisterRequestMapper;
+import de.paulm.four_in_a_row.mapper.user.AuthUserResponseMapper;
+import de.paulm.four_in_a_row.mapper.user.UserSessionMapper;
 import de.paulm.four_in_a_row.service.AuthenticationService;
 import de.paulm.four_in_a_row.service.UserSessionService;
+import de.paulm.four_in_a_row.web.dtos.RegisterRequest;
 import de.paulm.model.AuthUserResponseWdto;
 import de.paulm.model.LoginRequestWdto;
 import de.paulm.model.PasswordChangeRequestWdto;
@@ -39,6 +41,7 @@ public class AuthApiHandler implements AuthApiDelegate {
     private final UserSessionService userSessionService;
     private final UserSessionMapper userSessionMapper;
     private final AuthUserResponseMapper authUserResponseMapper;
+    private final RegisterRequestMapper registerRequestMapper;
 
     @Value("${application.security.cookie-secure}")
     private boolean cookieSecure;
@@ -46,12 +49,13 @@ public class AuthApiHandler implements AuthApiDelegate {
     @Override
     public ResponseEntity<AuthUserResponseWdto> register(RegisterRequestWdto requestWdto) {
         log.info("Registrieren mit {} als {}", requestWdto.getEmail(), requestWdto.getDisplayName());
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+        HttpServletRequest servletRequest = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
                 .getRequest();
-        String ipAddress = this.determineIpAddress(request);
+        String ipAddress = this.determineIpAddress(servletRequest);
+        RegisterRequest registerRequest = registerRequestMapper.fromWdto(requestWdto);
 
-        AuthUserResponse responseRecord = authService.register(requestWdto.getEmail(), requestWdto.getPassword(),
-                requestWdto.getDisplayName(), ipAddress, request.getHeader("User-Agent"));
+        AuthUserResponse responseRecord = authService.register(registerRequest, ipAddress,
+                servletRequest.getHeader("User-Agent"));
         AuthUserResponseWdto responseWdto = authUserResponseMapper.toWdto(responseRecord);
 
         ResponseCookie springCookie = buildRefreshTokenCookie(responseRecord.refreshToken());

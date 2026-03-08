@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import de.paulm.api.UserApiDelegate;
 import de.paulm.four_in_a_row.domain.security.UserProfileAggregate;
-import de.paulm.four_in_a_row.mapper.UserMapper;
+import de.paulm.four_in_a_row.mapper.user.UserMapper;
 import de.paulm.four_in_a_row.service.UserProfileAggregateService;
 import de.paulm.model.UserWdto;
 import lombok.RequiredArgsConstructor;

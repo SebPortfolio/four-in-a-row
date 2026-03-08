@@ -1,4 +1,4 @@
-package de.paulm.four_in_a_row.mapper;
+package de.paulm.four_in_a_row.mapper.user;
 
 import org.mapstruct.MapperConfig;
 import org.mapstruct.Mapping;
@@ -6,8 +6,10 @@ import org.mapstruct.MappingInheritanceStrategy;
 import org.mapstruct.MappingTarget;
 
 import de.paulm.four_in_a_row.domain.security.UserProfileAggregate;
+import de.paulm.four_in_a_row.mapper.ban.BanMapper;
 
-@MapperConfig(componentModel = "spring", mappingInheritanceStrategy = MappingInheritanceStrategy.AUTO_INHERIT_FROM_CONFIG)
+@MapperConfig(componentModel = "spring", mappingInheritanceStrategy = MappingInheritanceStrategy.AUTO_INHERIT_FROM_CONFIG, uses = {
+        BanMapper.class })
 public interface UserMappingConfig {
 
     @Mapping(target = "id", source = "user.id")
@@ -15,8 +17,8 @@ public interface UserMappingConfig {
     @Mapping(target = "lastPasswordChangeAt", source = "user.lastPasswordChangeAt")
     @Mapping(target = "roles", source = "user.roles")
     @Mapping(target = "status", source = "user.status")
-    @Mapping(target = "bannedUntil", source = "user.bannedUntil")
-    @Mapping(target = "banReason", source = "user.banReason")
+    @Mapping(target = "activeBan", source = "user.activeBan")
+    @Mapping(target = "banHistory", source = "user.banHistory")
     @Mapping(target = "displayName", source = "player.displayName")
     @Mapping(target = "statistic", ignore = true)
     void commonToWdto(UserProfileAggregate source, @MappingTarget Object target);
@@ -28,8 +30,7 @@ public interface UserMappingConfig {
     @Mapping(target = "user.lastPasswordChangeAt", source = "lastPasswordChangeAt")
     @Mapping(target = "user.roles", source = "roles")
     @Mapping(target = "user.status", source = "status")
-    @Mapping(target = "user.bannedUntil", source = "bannedUntil")
-    @Mapping(target = "user.banReason", source = "banReason")
+    @Mapping(target = "user.banHistory", source = "banHistory")
     @Mapping(target = "user.password", ignore = true)
     void commonFromWdto(Object source, @MappingTarget UserProfileAggregate target);
 }

@@ -1,4 +1,4 @@
-package de.paulm.four_in_a_row.mapper;
+package de.paulm.four_in_a_row.mapper.user;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

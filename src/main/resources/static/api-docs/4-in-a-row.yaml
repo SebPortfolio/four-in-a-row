@@ -441,6 +441,56 @@ paths:
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
+    '/api/v1/administration/roles':
+        get:
+            summary: Erhalte alle Rollen
+            operationId: getAllRoles
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            responses:
+                '200':
+                    description: Ok - Rollenliste abgerufen
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/RoleName'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/administration/permissions':
+        get:
+            summary: Erhalte alle Berechtigungen
+            operationId: getAllPermissions
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            responses:
+                '200':
+                    description: Ok - Berechtigungsliste abgerufen
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/PermissionName'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
     '/api/v1/administration/users':
         get:
             summary: Erhalte alle User im Admin-Bereich
@@ -479,7 +529,7 @@ paths:
                             $ref: '#/components/schemas/UserAdminCreateRequest'
             responses:
                 '201':
-                    description: Ok - User erstellt
+                    description: Created - User erstellt
                     content:
                         application/json:
                             schema:
@@ -503,7 +553,7 @@ paths:
               schema:
                   $ref: '#/components/schemas/UserId'
         get:
-            summary: Erhalte einen bestimmten User anhand seiner Id
+            summary: Erhalte einen bestimmten User anhand seiner Id als Admin
             operationId: getUserByIdAsAdmin
             x-webclient-blocking: true
             tags:
@@ -526,8 +576,8 @@ paths:
                 default:
                     $ref: '#/components/responses/InternalServerError'
         patch:
-            summary: Update User-Stammdaten
-            operationId: updateUserAsAdmin
+            summary: Patche User als Admin
+            operationId: patchUserAsAdmin
             x-webclient-blocking: true
             tags:
                 - User-Administration
@@ -536,7 +586,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/UserAdminUpdateRequest'
+                            $ref: '#/components/schemas/UserAdminPatchRequest'
             responses:
                 '200':
                     description: Ok - User aktualisiert
@@ -1460,6 +1510,11 @@ components:
         User:
             type: object
             description: vollständiger User zur adminseitigen Verwaltung
+            required:
+                - id
+                - displayName
+                - email
+                - status
             properties:
                 id:
                     $ref: '#/components/schemas/UserId'
@@ -1565,7 +1620,7 @@ components:
                     items:
                         $ref: '#/components/schemas/PermissionName'
 
-        UserAdminUpdateRequest:
+        UserAdminPatchRequest:
             type: object
             description: Modell für administrativ änderbare Felder eines Users
             properties:

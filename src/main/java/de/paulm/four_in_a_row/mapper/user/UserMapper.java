@@ -1,4 +1,4 @@
-package de.paulm.four_in_a_row.mapper;
+package de.paulm.four_in_a_row.mapper.user;
 
 import java.util.List;
 
@@ -6,12 +6,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import de.paulm.four_in_a_row.domain.security.UserProfileAggregate;
+import de.paulm.four_in_a_row.mapper.SharedSecurityMapper;
 import de.paulm.model.UserWdto;
 
-@Mapper(config = UserMappingConfig.class)
-public interface UserMapper extends SharedSecurityMapper {
+@Mapper(config = UserMappingConfig.class, uses = { SharedSecurityMapper.class })
+public interface UserMapper {
 
-    @Mapping(target = "user.internalBanNote", ignore = true)
     @Mapping(target = "user.customPermissions", ignore = true)
     UserProfileAggregate fromWdto(UserWdto wdto);
 
