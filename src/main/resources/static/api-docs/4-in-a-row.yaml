@@ -20,6 +20,8 @@ tags:
       description: Endpunkt zur administrativen Verwaltung von Usern
     - name: Ban
       description: Endpunkt zur administrativen Verwaltung von Banns
+    - name: Player-Administration
+      description: Endpunkt zur administativen Verwaltung von Spielern
     - name: Auth
       description: Endpunkt zur Verwaltung der Authentifizierung
 
@@ -302,19 +304,19 @@ paths:
                     $ref: '#/components/responses/TooManyRequestsError'
                 default:
                     $ref: '#/components/responses/InternalServerError'
-        put:
-            summary: Ersetze einen Spieler
-            operationId: updatePlayer
+        patch:
+            summary: Patche einen Spieler
+            operationId: patchPlayer
             x-webclient-blocking: true
             tags:
                 - Player
             requestBody:
-                description: aktualisierter Spieler
+                description: zu aktualisierende Spielerwerte
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Player'
+                            $ref: '#/components/schemas/PlayerPatchRequest'
             responses:
                 '200':
                     description: Ok - Spieler aktualisiert
@@ -343,8 +345,8 @@ paths:
               schema:
                   $ref: '#/components/schemas/UserId'
         patch:
-            summary: Update einen User
-            operationId: updateUser
+            summary: Patche einen User
+            operationId: patchUser
             x-webclient-blocking: true
             tags:
                 - User
@@ -353,7 +355,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/UserUpdateRequest'
+                            $ref: '#/components/schemas/UserPatchRequest'
             responses:
                 '200':
                     description: Ok - User aktualisiert
@@ -811,6 +813,41 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Ban'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/administration/players/{playerId}':
+        parameters:
+            - in: path
+              name: playerId
+              required: true
+              schema:
+                  $ref: '#/components/schemas/PlayerId'
+        patch:
+            summary: Patche Player als Admin
+            operationId: patchPlayerAsAdmin
+            x-webclient-blocking: true
+            tags:
+                - Player-Administration
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/PlayerPatchRequest'
+            responses:
+                '204':
+                    description: NoContent - Player aktualisiert
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -1342,6 +1379,15 @@ components:
                     description: Datum des letzten Spiels
                     example: '2026-02-23'
 
+        PlayerPatchRequest:
+            type: object
+            description: Model zum patchen eines Spielers
+            properties:
+                displayName:
+                    description: Neuer Anzeigename
+                    nullable: true
+                    $ref: '#/components/schemas/DisplayName'
+
         MoveRequest:
             type: object
             required:
@@ -1546,7 +1592,7 @@ components:
                     nullable: true
                     description: Der aktuell wirksame Bann, falls vorhanden
 
-        UserUpdateRequest:
+        UserPatchRequest:
             type: object
             description: Modell für änderbare Felder eines Users
             properties:
@@ -1669,9 +1715,6 @@ components:
             type: object
             description: Modell für administrativ änderbare Felder eines Users
             properties:
-                displayName:
-                    description: geänderter displayName
-                    $ref: '#/components/schemas/DisplayName'
                 email:
                     description: geänderte E-Mail Adresse
                     $ref: '#/components/schemas/Email'

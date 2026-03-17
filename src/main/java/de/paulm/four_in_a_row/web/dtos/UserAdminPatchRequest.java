@@ -13,8 +13,6 @@ public class UserAdminPatchRequest {
     @Size(min = 3)
     @Email
     private String email;
-    @Size(min = 3)
-    private String displayName;
     private Set<Role> roles;
     private Set<Permission> customPermissions;
 }
