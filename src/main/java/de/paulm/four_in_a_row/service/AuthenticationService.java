@@ -8,6 +8,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import de.paulm.four_in_a_row.domain.exceptions.RegistrationException;
 import de.paulm.four_in_a_row.domain.exceptions.UserSessionNotFoundException;
@@ -16,7 +17,6 @@ import de.paulm.four_in_a_row.domain.security.AuthResponse;
 import de.paulm.four_in_a_row.domain.security.User;
 import de.paulm.four_in_a_row.domain.security.UserSession;
 import de.paulm.four_in_a_row.web.dtos.RegisterRequest;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,6 +51,7 @@ public class AuthenticationService {
         return new AuthResponse(accessToken, refreshToken);
     }
 
+    @Transactional
     public AuthResponse login(String email, String password, String ipAdressStr, String userAgent,
             String oldRefreshToken) {
         authenticationManager.authenticate(
@@ -80,6 +81,7 @@ public class AuthenticationService {
         return new AuthResponse(accessToken, newRefreshToken);
     }
 
+    @Transactional
     public void changePassword(String oldPassword, String newPassword, String currentRefreshToken) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -91,6 +93,7 @@ public class AuthenticationService {
         userSessionService.logoutEverywhereButCurrent(currentUser.getId(), currentRefreshToken);
     }
 
+    @Transactional
     public AuthResponse refreshSession(String oldRefreshToken) {
         UserSession oldSession = userSessionService.getSessionByRefreshToken(oldRefreshToken);
         User user = userService.getUserById(oldSession.getUserId());
