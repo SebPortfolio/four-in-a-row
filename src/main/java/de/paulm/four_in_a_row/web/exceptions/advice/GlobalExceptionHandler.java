@@ -38,17 +38,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getStatus()).body(error);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex, WebRequest request) {
-        ApiError error = new ApiError(
-                ex.getMessage(),
-                HttpStatus.BAD_REQUEST,
-                "INVALID_REQUEST",
-                getDescriptionWithoutContextInfo(request),
-                Map.of());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
-
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiError> handleConstraintViolation(ConstraintViolationException ex, WebRequest request) {
         Map<String, Object> errorMap = ex.getConstraintViolations().stream()
