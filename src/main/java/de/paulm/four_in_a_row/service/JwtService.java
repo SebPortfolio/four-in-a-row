@@ -42,7 +42,8 @@ public class JwtService {
     public String generateAccessToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
         if (userDetails instanceof User user) {
-            extraClaims.put("id", user.getId());
+            extraClaims.put("userId", user.getId());
+            extraClaims.put("playerId", user.getPlayerId());
             List<String> authorities = user.getAuthorities()
                     .stream()
                     .map(GrantedAuthority::getAuthority)

@@ -3,22 +3,16 @@ package de.paulm.four_in_a_row.mapper.user;
 import java.util.List;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
-import de.paulm.four_in_a_row.domain.security.UserProfileAggregate;
+import de.paulm.four_in_a_row.domain.security.User;
+import de.paulm.four_in_a_row.mapper.JsonNullableMapper;
 import de.paulm.four_in_a_row.mapper.SharedSecurityMapper;
-import de.paulm.model.UserWdto;
+import de.paulm.model.UserResponseWdto;
 
-@Mapper(config = UserMappingConfig.class, uses = { SharedSecurityMapper.class })
+@Mapper(config = UserMappingConfig.class, uses = { SharedSecurityMapper.class, JsonNullableMapper.class })
 public interface UserMapper {
+    UserResponseWdto toWdto(User entity);
 
-    @Mapping(target = "user.customPermissions", ignore = true)
-    UserProfileAggregate fromWdto(UserWdto wdto);
-
-    UserWdto toWdto(UserProfileAggregate entity);
-
-    List<UserProfileAggregate> fromWdtoList(List<UserWdto> wdtos);
-
-    List<UserWdto> toWdtoList(List<UserProfileAggregate> entities);
+    List<UserResponseWdto> toWdtoList(List<User> entities);
 
 }

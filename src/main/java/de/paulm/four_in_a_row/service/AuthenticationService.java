@@ -12,9 +12,8 @@ import org.springframework.stereotype.Service;
 import de.paulm.four_in_a_row.domain.exceptions.RegistrationException;
 import de.paulm.four_in_a_row.domain.exceptions.UserSessionNotFoundException;
 import de.paulm.four_in_a_row.domain.player.PlayerProfile;
-import de.paulm.four_in_a_row.domain.security.AuthUserResponse;
+import de.paulm.four_in_a_row.domain.security.AuthResponse;
 import de.paulm.four_in_a_row.domain.security.User;
-import de.paulm.four_in_a_row.domain.security.UserProfileAggregate;
 import de.paulm.four_in_a_row.domain.security.UserSession;
 import de.paulm.four_in_a_row.web.dtos.RegisterRequest;
 import jakarta.transaction.Transactional;
@@ -34,7 +33,7 @@ public class AuthenticationService {
     private final PlayerProfileService playerProfileService;
 
     @Transactional
-    public AuthUserResponse register(RegisterRequest request, String ipAdressStr, String userAgent) {
+    public AuthResponse register(RegisterRequest request, String ipAdressStr, String userAgent) {
         if (userService.existsByEmail(request.getEmail())) {
             // TODO: Bestätigungsmail an bestehenden User,
             // ob er sich neu registrieren wollte?
@@ -49,12 +48,10 @@ public class AuthenticationService {
 
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = userSessionService.createSession(user.getId(), ipAdressStr, userAgent).getRefreshToken();
-
-        UserProfileAggregate userProfileAgg = new UserProfileAggregate(user, playerProfile);
-        return new AuthUserResponse(accessToken, refreshToken, userProfileAgg);
+        return new AuthResponse(accessToken, refreshToken);
     }
 
-    public AuthUserResponse login(String email, String password, String ipAdressStr, String userAgent,
+    public AuthResponse login(String email, String password, String ipAdressStr, String userAgent,
             String oldRefreshToken) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password));
@@ -80,8 +77,7 @@ public class AuthenticationService {
             newRefreshToken = userSessionService.createSession(userId, ipAdressStr, userAgent).getRefreshToken();
         }
 
-        UserProfileAggregate userContextResponse = buildUserProfileAggregate(user);
-        return new AuthUserResponse(accessToken, newRefreshToken, userContextResponse);
+        return new AuthResponse(accessToken, newRefreshToken);
     }
 
     public void changePassword(String oldPassword, String newPassword, String currentRefreshToken) {
@@ -95,19 +91,13 @@ public class AuthenticationService {
         userSessionService.logoutEverywhereButCurrent(currentUser.getId(), currentRefreshToken);
     }
 
-    public AuthUserResponse refreshSession(String oldRefreshToken) {
+    public AuthResponse refreshSession(String oldRefreshToken) {
         UserSession oldSession = userSessionService.getSessionByRefreshToken(oldRefreshToken);
         User user = userService.getUserById(oldSession.getUserId());
 
         String refreshToken = userSessionService.renewRefreshToken(oldRefreshToken, null, null);
         String accessToken = jwtService.generateAccessToken(user);
 
-        UserProfileAggregate userProfileAgg = buildUserProfileAggregate(user);
-        return new AuthUserResponse(accessToken, refreshToken, userProfileAgg);
-    }
-
-    private UserProfileAggregate buildUserProfileAggregate(User user) {
-        PlayerProfile profile = playerProfileService.getProfileByUserId(user.getId());
-        return new UserProfileAggregate(user, profile);
+        return new AuthResponse(accessToken, refreshToken);
     }
 }

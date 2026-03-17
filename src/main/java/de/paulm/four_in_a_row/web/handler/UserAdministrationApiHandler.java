@@ -10,6 +10,7 @@ import de.paulm.api.UserAdministrationApiDelegate;
 import de.paulm.four_in_a_row.domain.security.Permission;
 import de.paulm.four_in_a_row.domain.security.Role;
 import de.paulm.four_in_a_row.domain.security.User;
+import de.paulm.four_in_a_row.domain.security.UserProjection;
 import de.paulm.four_in_a_row.mapper.SharedSecurityMapper;
 import de.paulm.four_in_a_row.mapper.user.UserAdminMapper;
 import de.paulm.four_in_a_row.mapper.user.UserAuditMapper;
@@ -18,10 +19,10 @@ import de.paulm.four_in_a_row.service.UserAdministrationService;
 import de.paulm.four_in_a_row.web.dtos.Audit;
 import de.paulm.four_in_a_row.web.dtos.UserAdminCreateRequest;
 import de.paulm.four_in_a_row.web.dtos.UserAdminPatchRequest;
-import de.paulm.four_in_a_row.web.dtos.UserAdminResponse;
 import de.paulm.four_in_a_row.web.util.ResourceLocationHelper;
 import de.paulm.model.UserAdminCreateRequestWdto;
 import de.paulm.model.UserAdminPatchRequestWdto;
+import de.paulm.model.UserAdminResponseWdto;
 import de.paulm.model.UserAuditWdto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,35 +39,35 @@ public class UserAdministrationApiHandler implements UserAdministrationApiDelega
     private final UserAuditMapper userAuditMapper;
 
     @Override
-    public ResponseEntity<List<UserAdminWdto>> getUsersAsAdmin() {
-        List<UserAdminResponse> userAdminList = userAdministrationService.getUsersAsAdmin();
-        List<UserAdminWdto> wdtos = userAdminMapper.toResponseWdtoList(userAdminList);
+    public ResponseEntity<List<UserAdminResponseWdto>> getUsersAsAdmin() {
+        List<UserProjection> userAdminList = userAdministrationService.getUsersAsAdmin();
+        List<UserAdminResponseWdto> wdtos = userAdminMapper.toResponseWdtoList(userAdminList);
         return ResponseEntity.ok(wdtos);
     }
 
     @Override
-    public ResponseEntity<UserAdminWdto> getUserByIdAsAdmin(Long userId) {
-        UserAdminResponse userAdmin = userAdministrationService.getUserByIdAsAdmin(userId);
-        UserAdminWdto wdto = userAdminMapper.toResponseWdto(userAdmin);
+    public ResponseEntity<UserAdminResponseWdto> getUserByIdAsAdmin(Long userId) {
+        UserProjection userAdmin = userAdministrationService.getUserByIdAsAdmin(userId);
+        UserAdminResponseWdto wdto = userAdminMapper.toResponseWdto(userAdmin);
         return ResponseEntity.ok(wdto);
     }
 
     @Override
-    public ResponseEntity<UserAdminWdto> createUserAsAdmin(UserAdminCreateRequestWdto requestWdto) {
+    public ResponseEntity<UserAdminResponseWdto> createUserAsAdmin(UserAdminCreateRequestWdto requestWdto) {
         UserAdminCreateRequest request = userAdminMapper.fromCreateRequestWdto(requestWdto);
-        UserAdminResponse response = userAdministrationService.createUser(request);
-        UserAdminWdto responseWdto = userAdminMapper.toResponseWdto(response);
+        UserProjection response = userAdministrationService.createUser(request);
+        UserAdminResponseWdto responseWdto = userAdminMapper.toResponseWdto(response);
 
         URI location = ResourceLocationHelper.create(responseWdto.getId(), "userId");
         return ResponseEntity.created(location).body(responseWdto);
     }
 
     @Override
-    public ResponseEntity<UserAdminWdto> patchUserAsAdmin(Long userId,
+    public ResponseEntity<UserAdminResponseWdto> patchUserAsAdmin(Long userId,
             UserAdminPatchRequestWdto requestWdto) {
         UserAdminPatchRequest request = userAdminMapper.fromPatchRequestWdto(requestWdto);
-        UserAdminResponse response = userAdministrationService.patchUser(userId, request);
-        UserAdminWdto responseWdto = userAdminMapper.toResponseWdto(response);
+        UserProjection response = userAdministrationService.patchUser(userId, request);
+        UserAdminResponseWdto responseWdto = userAdminMapper.toResponseWdto(response);
 
         return ResponseEntity.ok(responseWdto);
     }

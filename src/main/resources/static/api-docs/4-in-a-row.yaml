@@ -335,31 +335,6 @@ paths:
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
-    '/api/v1/users':
-        get:
-            summary: Erhalte alle User
-            operationId: getUsers
-            x-webclient-blocking: true
-            tags:
-                - User
-            responses:
-                '200':
-                    description: Ok - User-Liste abgerufen
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: '#/components/schemas/User'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '403':
-                    $ref: '#/components/responses/Forbidden'
-                '429':
-                    $ref: '#/components/responses/TooManyRequestsError'
-                default:
-                    $ref: '#/components/responses/InternalServerError'
-
     '/api/v1/users/{userId}':
         parameters:
             - in: path
@@ -367,29 +342,6 @@ paths:
               required: true
               schema:
                   $ref: '#/components/schemas/UserId'
-        get:
-            summary: Erhalte einen spezifischen User
-            operationId: getUserById
-            x-webclient-blocking: true
-            tags:
-                - User
-            responses:
-                '200':
-                    description: Ok - User abgerufen
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/User'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '403':
-                    $ref: '#/components/responses/Forbidden'
-                '404':
-                    $ref: '#/components/responses/NotFound'
-                '429':
-                    $ref: '#/components/responses/TooManyRequestsError'
-                default:
-                    $ref: '#/components/responses/InternalServerError'
         patch:
             summary: Update einen User
             operationId: updateUser
@@ -408,7 +360,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/User'
+                                $ref: '#/components/schemas/UserResponse'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -506,7 +458,7 @@ paths:
                             schema:
                                 type: array
                                 items:
-                                    $ref: '#/components/schemas/UserAdmin'
+                                    $ref: '#/components/schemas/UserAdminResponse'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '403':
@@ -533,7 +485,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/UserAdmin'
+                                $ref: '#/components/schemas/UserAdminResponse'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -564,7 +516,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/UserAdmin'
+                                $ref: '#/components/schemas/UserAdminResponse'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '403':
@@ -593,7 +545,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/UserAdmin'
+                                $ref: '#/components/schemas/UserAdminResponse'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -895,7 +847,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/AuthUserResponse'
+                                $ref: '#/components/schemas/AuthResponse'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '429':
@@ -926,7 +878,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/AuthUserResponse'
+                                $ref: '#/components/schemas/AuthResponse'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '429':
@@ -958,7 +910,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/AuthUserResponse'
+                                $ref: '#/components/schemas/AuthResponse'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 default:
@@ -1004,7 +956,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/UserContextResponse'
+                                $ref: '#/components/schemas/MyProfile'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '429':
@@ -1464,17 +1416,14 @@ components:
                 email: 'max.mustermann@gmail.com'
                 password: 'Password123!'
 
-        AuthUserResponse:
+        AuthResponse:
             type: object
             required:
                 - accessToken
-                - userContext
             properties:
                 accessToken:
                     type: string
                     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-                userContext:
-                    $ref: '#/components/schemas/UserContextResponse'
 
         PasswordChangeRequest:
             type: object
@@ -1523,35 +1472,6 @@ components:
                     description: Flag, ob dies das Gerät ist, mit dem man gerade anfragt
                     example: true
 
-        UserContextResponse:
-            type: object
-            description: Kombiniertes Response aus User-Daten und Player-Profil
-            required:
-                - userId
-                - email
-                - playerId
-                - displayName
-            properties:
-                userId:
-                    description: Id des Users
-                    $ref: '#/components/schemas/UserId'
-                email:
-                    description: Email des Users
-                    $ref: '#/components/schemas/Email'
-                playerId:
-                    description: Id des Spieler-Profils
-                    $ref: '#/components/schemas/PlayerId'
-                displayName:
-                    description: Anzeigename des Spielers
-                    $ref: '#/components/schemas/DisplayName'
-                allPermissions:
-                    type: array
-                    description: Flache Liste ALLER effektiven Permission-Strings (Rollen + Custom)
-                    items:
-                        type: string
-                        uniqueItems: true
-                    example: ['GAME_PLAY', 'USER_VIEW_SELF', 'ADMIN']
-
         PermissionName:
             description: Name einer Berechtigungen (zum sehen, bearbeiten, löschen, administrieren etc.)
             type: string
@@ -1581,41 +1501,50 @@ components:
         UserId:
             description: Einzigartige Id eines Users
             $ref: '#/components/schemas/EntityId'
-        User:
+        UserResponse:
             type: object
-            description: vollständiger User zur adminseitigen Verwaltung
+            description: vollständige User-Repräsentation
             required:
                 - id
-                - displayName
                 - email
+                - lastPasswordChangeAt
+                - roles
+                - customPermissions
                 - status
+                - playerId
             properties:
                 id:
                     $ref: '#/components/schemas/UserId'
-                displayName:
-                    $ref: '#/components/schemas/DisplayName'
                 email:
                     $ref: '#/components/schemas/Email'
+                lastPasswordChangeAt:
+                    description: Zeitpunkt der letzten Passwortänderung
+                    type: string
+                    format: date-time
+                    nullable: true
                 roles:
                     type: array
                     items:
                         $ref: '#/components/schemas/RoleName'
                     description: alle Rollen des Users
-                lastPasswordChangeAt:
-                    description: Zeitpunkt der letzten Passwortänderung
-                    type: string
-                    format: date-time
+                customPermissions:
+                    description: Gesondert zugeordnete Berechtigungen
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PermissionName'
                 status:
                     $ref: '#/components/schemas/UserStatus'
-                activeBan:
-                    $ref: '#/components/schemas/Ban'
-                    nullable: true
-                    description: Der aktuell wirksame Bann, falls vorhanden
-                banHistory:
+                bans:
                     type: array
                     items:
                         description: Liste von allen Banns des Users
                         $ref: '#/components/schemas/Ban'
+                playerId:
+                    $ref: '#/components/schemas/PlayerId'
+                activeBan:
+                    $ref: '#/components/schemas/Ban'
+                    nullable: true
+                    description: Der aktuell wirksame Bann, falls vorhanden
 
         UserUpdateRequest:
             type: object
@@ -1628,14 +1557,53 @@ components:
                     description: geänderte E-Mail Adresse
                     $ref: '#/components/schemas/Email'
 
-        UserAdmin:
+        MyProfile:
+            type: object
+            description: Detaillierte Informationen über den aktuell angemeldeten Benutzer
+            required:
+                - id
+                - email
+                - displayName
+                - roles
+                - status
+                - lastPasswordChangeAt
+                - playerId
+            properties:
+                id:
+                    $ref: '#/components/schemas/UserId'
+                email:
+                    $ref: '#/components/schemas/Email'
+                displayName:
+                    $ref: '#/components/schemas/DisplayName'
+                lastPasswordChangeAt:
+                    description: Zeitpunkt der letzten Passwortänderung
+                    type: string
+                    format: date-time
+                    nullable: true
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RoleName'
+                status:
+                    $ref: '#/components/schemas/UserStatus'
+                activeBan:
+                    $ref: '#/components/schemas/Ban'
+                    nullable: true
+                playerId:
+                    $ref: '#/components/schemas/PlayerId'
+
+        UserAdminResponse:
             type: object
             description: vollständiger User zur adminseitigen Verwaltung
             required:
                 - id
                 - displayName
                 - email
+                - roles
+                - customPermissions
+                - lastPasswordChangeAt
                 - status
+                - playerId
             properties:
                 id:
                     $ref: '#/components/schemas/UserId'
@@ -1657,17 +1625,20 @@ components:
                     description: Zeitpunkt der letzten Passwortänderung
                     type: string
                     format: date-time
+                    nullable: true
                 status:
                     $ref: '#/components/schemas/UserStatus'
                 activeBan:
                     $ref: '#/components/schemas/Ban'
                     nullable: true
                     description: Der aktuell wirksame Bann, falls vorhanden
-                banHistory:
+                bans:
                     type: array
                     items:
                         description: Liste von allen Banns des Users
                         $ref: '#/components/schemas/Ban'
+                playerId:
+                    $ref: '#/components/schemas/PlayerId'
 
         # Password wird im backend automatisch generiert und als Einmalpassword gesetzt
         UserAdminCreateRequest:

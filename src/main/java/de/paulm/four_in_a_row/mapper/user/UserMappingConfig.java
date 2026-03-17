@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingInheritanceStrategy;
 import org.mapstruct.MappingTarget;
 
-import de.paulm.four_in_a_row.domain.security.UserProfileAggregate;
+import de.paulm.four_in_a_row.domain.security.UserProjection;
 import de.paulm.four_in_a_row.mapper.ban.BanMapper;
 
 @MapperConfig(componentModel = "spring", mappingInheritanceStrategy = MappingInheritanceStrategy.AUTO_INHERIT_FROM_CONFIG, uses = {
@@ -19,12 +19,9 @@ public interface UserMappingConfig {
     @Mapping(target = "status", source = "user.status")
     @Mapping(target = "activeBan", source = "user.activeBan")
     @Mapping(target = "bans", source = "user.bans")
-    @Mapping(target = "displayName", source = "player.displayName")
-    @Mapping(target = "statistic", ignore = true)
-    void commonToWdto(UserProfileAggregate source, @MappingTarget Object target);
+    @Mapping(target = "playerId", source = "user.playerId")
+    void commonToWdto(UserProjection source, @MappingTarget Object target);
 
-    @Mapping(target = "player.displayName", source = "displayName")
-    @Mapping(target = "player.userId", source = "id")
     @Mapping(target = "user.id", source = "id")
     @Mapping(target = "user.email", source = "email")
     @Mapping(target = "user.lastPasswordChangeAt", source = "lastPasswordChangeAt")
@@ -32,5 +29,5 @@ public interface UserMappingConfig {
     @Mapping(target = "user.status", source = "status")
     @Mapping(target = "user.banHistory", source = "banHistory")
     @Mapping(target = "user.password", ignore = true)
-    void commonFromWdto(Object source, @MappingTarget UserProfileAggregate target);
+    void commonFromWdto(Object source, @MappingTarget UserProjection target);
 }
