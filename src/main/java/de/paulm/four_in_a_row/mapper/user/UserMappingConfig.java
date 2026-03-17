@@ -18,7 +18,7 @@ public interface UserMappingConfig {
     @Mapping(target = "roles", source = "user.roles")
     @Mapping(target = "status", source = "user.status")
     @Mapping(target = "activeBan", source = "user.activeBan")
-    @Mapping(target = "banHistory", source = "user.banHistory")
+    @Mapping(target = "bans", source = "user.bans")
     @Mapping(target = "displayName", source = "player.displayName")
     @Mapping(target = "statistic", ignore = true)
     void commonToWdto(UserProfileAggregate source, @MappingTarget Object target);

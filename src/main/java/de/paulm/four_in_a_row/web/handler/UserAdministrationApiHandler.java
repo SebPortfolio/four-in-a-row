@@ -9,16 +9,20 @@ import org.springframework.web.bind.annotation.RestController;
 import de.paulm.api.UserAdministrationApiDelegate;
 import de.paulm.four_in_a_row.domain.security.Permission;
 import de.paulm.four_in_a_row.domain.security.Role;
+import de.paulm.four_in_a_row.domain.security.User;
 import de.paulm.four_in_a_row.mapper.SharedSecurityMapper;
 import de.paulm.four_in_a_row.mapper.user.UserAdminMapper;
+import de.paulm.four_in_a_row.mapper.user.UserAuditMapper;
+import de.paulm.four_in_a_row.service.AuditService;
 import de.paulm.four_in_a_row.service.UserAdministrationService;
+import de.paulm.four_in_a_row.web.dtos.Audit;
 import de.paulm.four_in_a_row.web.dtos.UserAdminCreateRequest;
 import de.paulm.four_in_a_row.web.dtos.UserAdminPatchRequest;
 import de.paulm.four_in_a_row.web.dtos.UserAdminResponse;
 import de.paulm.four_in_a_row.web.util.ResourceLocationHelper;
 import de.paulm.model.UserAdminCreateRequestWdto;
 import de.paulm.model.UserAdminPatchRequestWdto;
-import de.paulm.model.UserAdminWdto;
+import de.paulm.model.UserAuditWdto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,8 +32,10 @@ import lombok.extern.slf4j.Slf4j;
 public class UserAdministrationApiHandler implements UserAdministrationApiDelegate {
 
     private final UserAdministrationService userAdministrationService;
+    private final AuditService auditService;
     private final UserAdminMapper userAdminMapper;
     private final SharedSecurityMapper sharedSecurityMapper;
+    private final UserAuditMapper userAuditMapper;
 
     @Override
     public ResponseEntity<List<UserAdminWdto>> getUsersAsAdmin() {
@@ -81,5 +87,12 @@ public class UserAdministrationApiHandler implements UserAdministrationApiDelega
     public ResponseEntity<List<String>> getAllPermissions() {
         List<String> permissions = sharedSecurityMapper.fromPermissionArray(Permission.values());
         return ResponseEntity.ok(permissions);
+    }
+
+    @Override
+    public ResponseEntity<List<UserAuditWdto>> getUserHistory(Long userId) {
+        List<Audit<User>> history = auditService.getHistory(User.class, userId);
+        List<UserAuditWdto> wdtos = userAuditMapper.toWdtoList(history);
+        return ResponseEntity.ok(wdtos);
     }
 }

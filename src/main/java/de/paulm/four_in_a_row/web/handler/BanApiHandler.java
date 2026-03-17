@@ -3,6 +3,7 @@ package de.paulm.four_in_a_row.web.handler;
 import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.on;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,14 +11,18 @@ import org.springframework.web.bind.annotation.RestController;
 import de.paulm.api.BanApiDelegate;
 import de.paulm.api.UserAdministrationApiDelegate;
 import de.paulm.four_in_a_row.domain.security.Ban;
+import de.paulm.four_in_a_row.mapper.ban.BanAuditMapper;
 import de.paulm.four_in_a_row.mapper.ban.BanChangeMapper;
 import de.paulm.four_in_a_row.mapper.ban.BanMapper;
+import de.paulm.four_in_a_row.service.AuditService;
 import de.paulm.four_in_a_row.service.BanService;
+import de.paulm.four_in_a_row.web.dtos.Audit;
 import de.paulm.four_in_a_row.web.dtos.ban.BanCreateRequest;
 import de.paulm.four_in_a_row.web.dtos.ban.BanPermanentCreateRequest;
 import de.paulm.four_in_a_row.web.dtos.ban.BanUpdateRequest;
 import de.paulm.four_in_a_row.web.dtos.ban.CancelBanRequest;
 import de.paulm.four_in_a_row.web.util.ResourceLocationHelper;
+import de.paulm.model.BanAuditWdto;
 import de.paulm.model.BanCreateRequestWdto;
 import de.paulm.model.BanPermanentCreateRequestWdto;
 import de.paulm.model.BanUpdateRequestWdto;
@@ -30,8 +35,10 @@ import lombok.RequiredArgsConstructor;
 public class BanApiHandler implements BanApiDelegate {
 
     private final BanService banService;
+    private final AuditService auditService;
     private final BanMapper banMapper;
     private final BanChangeMapper banChangeMapper;
+    private final BanAuditMapper banAuditMapper;
 
     @Override
     public ResponseEntity<BanWdto> banUser(Long userId, BanCreateRequestWdto requestWdto) {
@@ -67,5 +74,15 @@ public class BanApiHandler implements BanApiDelegate {
         Ban ban = banService.cancelBan(userId, banId, mappedRequest);
         BanWdto responseWdto = banMapper.toBanWdto(ban);
         return ResponseEntity.ok(responseWdto);
+    }
+
+    @Override
+    public ResponseEntity<List<BanAuditWdto>> getBanHistory(Long userId, Long banId) {
+        banService.getBanByIdAndValidateUser(banId, userId);
+
+        List<Audit<Ban>> history = auditService.getHistory(Ban.class, banId);
+        List<BanAuditWdto> wdtos = banAuditMapper.toWdtoList(history);
+
+        return ResponseEntity.ok(wdtos);
     }
 }

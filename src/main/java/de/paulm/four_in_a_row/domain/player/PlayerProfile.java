@@ -2,6 +2,8 @@ package de.paulm.four_in_a_row.domain.player;
 
 import java.time.LocalDate;
 
+import org.hibernate.envers.Audited;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @AllArgsConstructor
 @Slf4j
+@Audited
 @Table(name = "PLAYER_PROFILE")
 @EqualsAndHashCode(exclude = "statistic")
 public class PlayerProfile {

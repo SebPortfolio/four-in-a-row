@@ -44,7 +44,7 @@ public class BanRequestValidationService {
         }
     }
 
-    private void validateUserHasThisBan(Ban ban, Long userId) {
+    public void validateUserHasThisBan(Ban ban, Long userId) {
         if (!ban.getUser().getId().equals(userId)) {
             throw new BanUserMismatchException(ban.getId(), userId);
         }

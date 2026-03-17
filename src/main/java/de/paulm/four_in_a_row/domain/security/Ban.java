@@ -1,14 +1,13 @@
 package de.paulm.four_in_a_row.domain.security;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+
+import org.hibernate.envers.Audited;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import de.paulm.four_in_a_row.domain.security.annotations.ValidDateRange;
 import de.paulm.four_in_a_row.domain.security.interfaces.DateTimeRange;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,8 +18,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,6 +31,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Audited
 @Table(name = "BAN")
 @ValidDateRange
 public class Ban implements DateTimeRange<LocalDateTime> {
@@ -64,10 +62,8 @@ public class Ban implements DateTimeRange<LocalDateTime> {
     @Column(name = "CANCELLED_AT")
     private LocalDateTime cancelledAt; // Wenn gesetzt, ist der Ban hinfällig
 
-    @Builder.Default
-    @OneToMany(mappedBy = "ban", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    @OrderBy("timeStamp DESC") // neueste Änderung immer oben
-    private List<BanAction> actionHistory = new ArrayList<>();
+    @Column(name = "LAST_INTERNAL_COMMENT", nullable = false)
+    private String lastInternalComment;
 
     public boolean isActive() {
         if (cancelledAt != null) {
@@ -78,19 +74,6 @@ public class Ban implements DateTimeRange<LocalDateTime> {
         }
         LocalDateTime now = LocalDateTime.now();
         return !this.startAt.isAfter(now) && this.endAt.isAfter(now);
-    }
-
-    public void addAction(BanAction action) {
-        actionHistory.add(action);
-        action.setBan(this);
-    }
-
-    public String toSnapshot() {
-        return String.format(
-                "end: %s | reason: %s | cancelled: %s",
-                endAt != null ? endAt.toLocalDate() : "PERMANENT",
-                reason,
-                cancelledAt != null ? "YES (" + cancelledAt.toLocalDate() + ")" : "NO");
     }
 
 }

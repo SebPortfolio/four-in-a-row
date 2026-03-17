@@ -3,6 +3,7 @@ package de.paulm.four_in_a_row.domain.player;
 import java.time.LocalDate;
 
 import org.hibernate.annotations.Check;
+import org.hibernate.envers.Audited;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,6 +28,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Audited
 @Table(name = "PLAYER_STATISTIC")
 @Check(constraints = "GAMES_LOST >= GAMES_SURRENDERED AND TOTAL_GAMES = (GAMES_WON + GAMES_LOST)")
 public class PlayerStatistic {

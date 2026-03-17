@@ -62,7 +62,7 @@ public class UserService implements UserDetailsService {
         if (email == null) {
             throw new IllegalArgumentException("email darf nicht null sein");
         }
-        User user = userRepository.findByEmailEager(email).orElseThrow(
+        User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new UserNotFoundException());
 
         return user;

@@ -626,6 +626,40 @@ paths:
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
+    '/api/v1/administration/users/{userId}/history':
+        parameters:
+            - in: path
+              name: userId
+              required: true
+              description: Id des Users dessen Änderungsverlauf betrachtet werden soll
+              schema:
+                  $ref: '#/components/schemas/UserId'
+        get:
+            summary: Erhalte den Änderungsverlauf eines Users als Admin
+            operationId: getUserHistory
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            responses:
+                '200':
+                    description: Ok - Änderungsverlauf erfolgreich abgerufen
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/UserAudit'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
     # Für temporäre Banns (mit Datum)
     '/api/v1/administration/users/{userId}/ban':
         parameters:
@@ -695,6 +729,46 @@ paths:
                                 $ref: '#/components/schemas/Ban'
                 '400':
                     $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
+    '/api/v1/administration/users/{userId}/bans/{banId}/history':
+        parameters:
+            - in: path
+              name: userId
+              description: Id des Users, dessen Bann betrachtet werden soll
+              required: true
+              schema:
+                  $ref: '#/components/schemas/UserId'
+            - in: path
+              name: banId
+              description: Id des Banns, der betrachtet werden soll
+              required: true
+              schema:
+                  $ref: '#/components/schemas/BanId'
+        get:
+            summary: Änderungsverlauf eines Banns eines Users erhalten
+            operationId: getBanHistory
+            x-webclient-blocking: true
+            tags:
+                - Ban
+            responses:
+                '200':
+                    description: Ok - Änderungsverlauf erfolgreich geladen
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/BanAudit'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '403':
@@ -1652,6 +1726,7 @@ components:
                 - userId
                 - startAt
                 - banReason
+                - lastInternalComment
             properties:
                 id:
                     description: Id des Banns
@@ -1679,11 +1754,9 @@ components:
                     type: string
                     format: date-time
                     nullable: true
-                actionHistory:
-                    description: Log-Historie zu Änderungen am Bann
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/BanAction'
+                lastInternalComment:
+                    description: Kommentar zur Änderung
+                    $ref: '#/components/schemas/BanActionComment'
 
         BanCreateRequest:
             type: object
@@ -1770,30 +1843,49 @@ components:
             type: string
             minLength: 5
 
-        BanAction:
+        # Technisches "Gehäuse" für alle Audits
+        AuditMetadata:
             type: object
+            required:
+                - revisionId
+                - timestamp
+                - modifierUserId
+                - revisionType
             properties:
-                id:
-                    description: Id der BanAction
-                    $ref: '#/components/schemas/EntityId'
-                banId:
-                    description: Id des zugehörigen Banns
-                    $ref: '#/components/schemas/BanId'
-                executingUserId:
-                    description: Id des Users, der diese Aktion ausgeführt hat
-                    $ref: '#/components/schemas/UserId'
-                timeStamp:
-                    description: Zeitstempel der Aktion
+                revisionId:
+                    type: integer
+                timestamp:
                     type: string
                     format: date-time
-                comment:
-                    $ref: '#/components/schemas/BanActionComment'
-                oldValue:
-                    description: Zustand des Banns vor der Aktion
+                    description: Zeitpunkt der Änderung
+                modifierUserId:
+                    description: Id des ausführenden Users
+                    $ref: '#/components/schemas/UserId'
+                    nullable: true
+                revisionType:
                     type: string
-                newValue:
-                    description: Zustand des Banns nach der Aktion
-                    type: string
+                    enum: [ADD, MOD, DEL]
+                    description: Art der Änderung (CUD)
+
+        BanAudit:
+            allOf:
+                - $ref: '#/components/schemas/AuditMetadata'
+                - type: object
+                  required:
+                      - entity
+                  properties:
+                      entity:
+                          $ref: '#/components/schemas/Ban'
+
+        UserAudit:
+            allOf:
+                - $ref: '#/components/schemas/AuditMetadata'
+                - type: object
+                  required:
+                      - entity
+                  properties:
+                      entity:
+                          $ref: '#/components/schemas/UserResponse'
 
     #    Steam64:
     #      type: integer

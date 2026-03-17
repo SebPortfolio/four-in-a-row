@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -47,6 +49,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Audited
 @Table(name = "APP_USER") // User ist SQL-Keyword
 public class User implements UserDetails {
 
@@ -69,6 +72,7 @@ public class User implements UserDetails {
     }
 
     @JsonIgnore
+    @NotAudited
     @Column(name = "PASSWORD", nullable = false)
     private String password;
 
@@ -95,16 +99,16 @@ public class User implements UserDetails {
     private UserStatus status = UserStatus.UNVERIFIED;
 
     @Setter(AccessLevel.NONE)
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("startAt DESC")
     @Builder.Default
-    private List<Ban> banHistory = new ArrayList<>();
+    private List<Ban> bans = new ArrayList<>();
 
     @Column(name = "PLAYER_ID", unique = true)
     private Long playerId;
 
     public Ban getActiveBan() {
-        return banHistory.stream()
+        return bans.stream()
                 .filter(Ban::isActive)
                 .sorted((b1, b2) -> {
                     // Perma-Ban hat Vorrang
@@ -123,7 +127,7 @@ public class User implements UserDetails {
 
     public void addBan(@Valid Ban ban) {
         ban.setUser(this);
-        this.banHistory.add(ban);
+        this.bans.add(ban);
     }
 
     @Override

@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import de.paulm.four_in_a_row.domain.exceptions.BanNotFoundException;
 import de.paulm.four_in_a_row.domain.exceptions.UserNotFoundException;
 import de.paulm.four_in_a_row.domain.security.Ban;
-import de.paulm.four_in_a_row.domain.security.BanAction;
 import de.paulm.four_in_a_row.domain.security.BanReason;
 import de.paulm.four_in_a_row.domain.security.User;
 import de.paulm.four_in_a_row.repository.BanRepository;
@@ -29,7 +28,6 @@ public class BanService {
 
     private final BanRepository banRepository;
     private final UserRepository userRepository;
-    private final BanActionService banActionService;
     private final BanRequestValidationService banRequestValidationService;
 
     @Transactional(readOnly = true)
@@ -39,6 +37,13 @@ public class BanService {
         }
 
         return banRepository.findById(banId).orElseThrow(() -> new BanNotFoundException(banId));
+    }
+
+    @Transactional(readOnly = true)
+    public Ban getBanByIdAndValidateUser(Long banId, Long userId) {
+        Ban ban = getBanById(banId);
+        banRequestValidationService.validateUserHasThisBan(ban, userId);
+        return ban;
     }
 
     @Transactional
@@ -55,13 +60,6 @@ public class BanService {
                 request.getInternalNote(),
                 request.getExecutingUserId());
 
-        BanAction createAction = banActionService.logAction(
-                ban,
-                request.getExecutingUserId(),
-                null,
-                null);
-
-        ban.addAction(createAction);
         user.addBan(ban);
 
         log.info("Bann erstellt: {}", ban);
@@ -82,13 +80,6 @@ public class BanService {
                 request.getInternalNote(),
                 request.getExecutingUserId());
 
-        BanAction createAction = banActionService.logAction(
-                ban,
-                request.getExecutingUserId(),
-                null,
-                null);
-
-        ban.addAction(createAction);
         user.addBan(ban);
 
         log.info("Perma-Bann erstellt: {}", ban);
@@ -100,20 +91,11 @@ public class BanService {
         Ban ban = getBanById(banId);
         banRequestValidationService.validateUpdate(userId, ban, request);
 
-        String oldValue = ban.toSnapshot();
-
         ban.setReason(request.getReason());
         ban.setInternalNote(request.getInternalNote());
         ban.setEndAt(request.getNewEndAt());
 
-        BanAction editAction = banActionService.logAction(ban,
-                request.getExecutingUserId(),
-                oldValue,
-                request.getComment());
-
-        ban.addAction(editAction);
-
-        log.info("Bann {} editiert: {}", banId, editAction);
+        log.info("Bann #{} editiert", banId);
         return ban;
     }
 
@@ -122,18 +104,9 @@ public class BanService {
         Ban ban = getBanById(banId);
         banRequestValidationService.validateCancel(userId, ban, request);
 
-        String oldValue = ban.toSnapshot();
-
         ban.setCancelledAt(LocalDateTime.now());
 
-        BanAction cancelAction = banActionService.logAction(ban,
-                request.getExecutingUserId(),
-                oldValue,
-                request.getComment());
-
-        ban.addAction(cancelAction);
-
-        log.info("Bann {} aufgehoben: {}", banId, cancelAction);
+        log.info("Bann #{} aufgehoben", banId);
         return ban;
     }
 
