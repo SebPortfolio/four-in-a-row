@@ -12,15 +12,22 @@ import de.paulm.four_in_a_row.domain.security.Role;
 import de.paulm.four_in_a_row.domain.security.User;
 import de.paulm.four_in_a_row.mapper.SharedSecurityMapper;
 import de.paulm.four_in_a_row.mapper.user.UserAdminMapper;
+import de.paulm.four_in_a_row.mapper.user.UserAdminMasterDataMapper;
+import de.paulm.four_in_a_row.mapper.user.UserAdminOverviewMapper;
 import de.paulm.four_in_a_row.mapper.user.UserAuditMapper;
 import de.paulm.four_in_a_row.service.AuditService;
 import de.paulm.four_in_a_row.service.UserAdministrationService;
 import de.paulm.four_in_a_row.web.dtos.Audit;
 import de.paulm.four_in_a_row.web.dtos.UserAdminCreateRequest;
+import de.paulm.four_in_a_row.web.dtos.UserAdminMasterDataResponse;
+import de.paulm.four_in_a_row.web.dtos.UserAdminOverviewResponse;
 import de.paulm.four_in_a_row.web.dtos.UserAdminPatchRequest;
 import de.paulm.four_in_a_row.web.dtos.UserAdminResponse;
 import de.paulm.four_in_a_row.web.util.ResourceLocationHelper;
+import de.paulm.model.EmailRevealResponseWdto;
 import de.paulm.model.UserAdminCreateRequestWdto;
+import de.paulm.model.UserAdminMasterDataResponseWdto;
+import de.paulm.model.UserAdminOverviewResponseWdto;
 import de.paulm.model.UserAdminPatchRequestWdto;
 import de.paulm.model.UserAdminResponseWdto;
 import de.paulm.model.UserAuditWdto;
@@ -38,6 +45,8 @@ public class UserAdministrationApiHandler implements UserAdministrationApiDelega
     private final UserAdminMapper userAdminMapper;
     private final SharedSecurityMapper sharedSecurityMapper;
     private final UserAuditMapper userAuditMapper;
+    private final UserAdminOverviewMapper userAdminOverviewMapper;
+    private final UserAdminMasterDataMapper userAdminMasterDataMapper;
 
     @Override
     public ResponseEntity<List<UserAdminResponseWdto>> getUsersAsAdmin() {
@@ -96,5 +105,25 @@ public class UserAdministrationApiHandler implements UserAdministrationApiDelega
         List<Audit<User>> history = auditService.getHistory(User.class, userId);
         List<UserAuditWdto> wdtos = userAuditMapper.toWdtoList(history);
         return ResponseEntity.ok(wdtos);
+    }
+
+    @Override
+    public ResponseEntity<EmailRevealResponseWdto> getRevealedEmail(Long userId) {
+        String revealedEmail = userAdministrationService.getClearTextEmail(userId);
+        return ResponseEntity.ok(new EmailRevealResponseWdto(revealedEmail));
+    }
+
+    @Override
+    public ResponseEntity<List<UserAdminOverviewResponseWdto>> getUserAdminOverview() {
+        List<UserAdminOverviewResponse> response = userAdministrationService.getUsersForAdminOverview();
+        List<UserAdminOverviewResponseWdto> responseWdto = userAdminOverviewMapper.toWdtoList(response);
+        return ResponseEntity.ok(responseWdto);
+    }
+
+    @Override
+    public ResponseEntity<UserAdminMasterDataResponseWdto> getUserAdminMasterData(Long userId) {
+        UserAdminMasterDataResponse response = userAdministrationService.getUserMasterData(userId);
+        UserAdminMasterDataResponseWdto responseWdto = userAdminMasterDataMapper.toWdto(response);
+        return ResponseEntity.ok(responseWdto);
     }
 }

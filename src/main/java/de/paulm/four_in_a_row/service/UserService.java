@@ -225,4 +225,24 @@ public class UserService implements UserDetailsService {
                 .build());
     }
 
+    public String maskEmail(String rawEmail) {
+        if (rawEmail == null) {
+            throw new IllegalArgumentException("rawEmail darf nicht null sein");
+        }
+        // Logik: max.mustermann@gmail.com -> m***m@g***m
+        Pattern regex = Pattern.compile("^(.).*(.@.).*(.)$");
+        Matcher matcher = regex.matcher(rawEmail);
+
+        final String MASKED_TEMPLATE = "%s***%s***%s";
+
+        if (matcher.find() && matcher.groupCount() == 3) {
+            return MASKED_TEMPLATE.formatted(
+                    matcher.group(1),
+                    matcher.group(2),
+                    matcher.group(3));
+        } else {
+            throw new IllegalArgumentException("Ungültiges E-Mail-Format für Maskierung: " + rawEmail);
+        }
+    }
+
 }

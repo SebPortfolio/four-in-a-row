@@ -5,12 +5,15 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import de.paulm.four_in_a_row.domain.exceptions.PlayerProfileNotFoundException;
 import de.paulm.four_in_a_row.domain.exceptions.UserNotFoundException;
 import de.paulm.four_in_a_row.domain.player.PlayerProfile;
 import de.paulm.four_in_a_row.domain.security.User;
 import de.paulm.four_in_a_row.domain.security.UserProjection;
 import de.paulm.four_in_a_row.repository.UserRepository;
 import de.paulm.four_in_a_row.web.dtos.UserAdminCreateRequest;
+import de.paulm.four_in_a_row.web.dtos.UserAdminMasterDataResponse;
+import de.paulm.four_in_a_row.web.dtos.UserAdminOverviewResponse;
 import de.paulm.four_in_a_row.web.dtos.UserAdminPatchRequest;
 import de.paulm.four_in_a_row.web.dtos.UserAdminResponse;
 import lombok.RequiredArgsConstructor;
@@ -67,6 +70,31 @@ public class UserAdministrationService {
         return buildUserAdminResponse(new UserProjection(user, player.getDisplayName()));
     }
 
+    @Transactional
+    public String getClearTextEmail(Long targetUserId) {
+        User targetUser = userService.getUserById(targetUserId);
+
+        auditService.logRevealEmailByAdmin(targetUserId);
+
+        return targetUser.getEmail();
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserAdminOverviewResponse> getUsersForAdminOverview() {
+        List<UserProjection> projections = userRepository.findAllProjections();
+        return projections.stream()
+                .map(projection -> buildUserAdminOverviewResponse(projection))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public UserAdminMasterDataResponse getUserMasterData(Long userId) {
+        UserProjection projection = userRepository.findProjectionById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        return buildUserAdminMasterDataResponse(projection);
+    }
+
     private UserAdminResponse buildUserAdminResponse(UserProjection projection) {
         User user = projection.user();
         return UserAdminResponse.builder()
@@ -84,4 +112,44 @@ public class UserAdministrationService {
                 .lastModifiedByUserId(user.getLastModifiedByUserId())
                 .build();
     }
+
+    private UserAdminOverviewResponse buildUserAdminOverviewResponse(UserProjection projection) {
+        User user = projection.user();
+        return UserAdminOverviewResponse.builder()
+                .id(user.getId())
+                .displayName(projection.displayName())
+                .maskedEmail(userService.maskEmail(user.getEmail()))
+                .status(user.getStatus())
+                .roles(user.getRoles())
+                .hasCustomPermissions(user.getCustomPermissions() != null && !user.getCustomPermissions().isEmpty())
+                .banned(user.getActiveBan() != null)
+                .build();
+    }
+
+    private UserAdminMasterDataResponse buildUserAdminMasterDataResponse(UserProjection projection) {
+        User user = projection.user();
+        String lastModifiedDisplayName = null;
+        if (user.getLastModifiedAt() != null) {
+            try {
+                lastModifiedDisplayName = playerProfileService.getProfileByUserId(user.getLastModifiedByUserId())
+                        .getDisplayName();
+            } catch (PlayerProfileNotFoundException e) {
+                log.info("letzter Bearbeiter #{} ist nicht als Player gespeichert", user.getLastModifiedByUserId());
+                lastModifiedDisplayName = "Deleted_Player_" + user.getLastModifiedByUserId();
+            }
+
+        }
+        return UserAdminMasterDataResponse.builder()
+                .id(user.getId())
+                .displayName(projection.displayName())
+                .maskedEmail(userService.maskEmail(user.getEmail()))
+                .status(user.getStatus())
+                .roles(user.getRoles())
+                .customPermissions(user.getCustomPermissions())
+                .lastModifiedAt(user.getLastModifiedAt())
+                .lastModifiedByUserId(user.getLastModifiedByUserId())
+                .lastModifiedByDisplayName(lastModifiedDisplayName)
+                .build();
+    }
+
 }

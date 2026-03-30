@@ -12,9 +12,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import de.paulm.four_in_a_row.domain.security.AccessLog;
 import de.paulm.four_in_a_row.domain.security.CustomRevisionEntity;
 import de.paulm.four_in_a_row.domain.security.ILastModified;
 import de.paulm.four_in_a_row.domain.security.User;
+import de.paulm.four_in_a_row.repository.AccessLogRepository;
 import de.paulm.four_in_a_row.web.dtos.Audit;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuditService {
     private final EntityManager entityManager;
+    private final AccessLogRepository accessLogRepository;
 
     @Transactional(readOnly = true)
     public <T> List<Audit<T>> getHistory(Class<T> entityClass, Object id) {
@@ -68,5 +71,19 @@ public class AuditService {
         if (principal instanceof User executingUser) {
             entity.setLastModifiedByUserId(executingUser.getId());
         }
+    }
+
+    @Transactional
+    public void logRevealEmailByAdmin(Long targetUserId) {
+        User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long adminId = principal.getId();
+
+        AccessLog log = AccessLog.builder()
+                .executingUserId(adminId)
+                .targetUserId(targetUserId)
+                .action("REVEAL_EMAIL")
+                .timestamp(LocalDateTime.now())
+                .build();
+        accessLogRepository.save(log);
     }
 }

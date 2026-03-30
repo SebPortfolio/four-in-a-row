@@ -614,6 +614,38 @@ paths:
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
+    '/api/v1/administration/users/{userId}/reveal-email':
+        parameters:
+            - in: path
+              name: userId
+              required: true
+              description: Id des Users dessen Email betrachtet werden soll
+              schema:
+                  $ref: '#/components/schemas/UserId'
+        get:
+            summary: Erhalte die Email eines Users im Klartext als Admin
+            operationId: getRevealedEmail
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            responses:
+                '200':
+                    description: Ok - Email im Klartext abgerufen
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmailRevealResponse'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '429':
+                    $ref: '#/components/responses/TooManyRequestsError'
+                default:
+                    $ref: '#/components/responses/InternalServerError'
+
     # Für temporäre Banns (mit Datum)
     '/api/v1/administration/users/{userId}/ban':
         parameters:
@@ -1091,6 +1123,45 @@ paths:
                 default:
                     $ref: '#/components/responses/InternalServerError'
 
+    '/api/v1/administration/user-overview':
+        get:
+            summary: Erhalte eine administrative Übersicht von Usern
+            operationId: getUserAdminOverview
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            responses:
+                '200':
+                    description: Ok - Liste von Usern
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/UserAdminOverviewResponse'
+
+    '/api/v1/administration/user-master-data/{userId}':
+        parameters:
+            - in: path
+              name: userId
+              schema:
+                  $ref: '#/components/schemas/UserId'
+              required: true
+              description: Id des Users, dessen Details administrativ abgefragt werden
+        get:
+            summary: Erhalte administrative Stammdaten eines Users
+            operationId: getUserAdminMasterData
+            x-webclient-blocking: true
+            tags:
+                - User-Administration
+            responses:
+                '200':
+                    description: Ok - Details des Users
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserAdminMasterDataResponse'
+
 components:
     headers:
         SetRefreshToken:
@@ -1217,8 +1288,14 @@ components:
         Email:
             type: string
             format: email
-            description: E-Mail Adresse # Valide nach RFC 5322
+            description: E-Mail Adresse im Klartext # Valide nach RFC 5322
             example: 'max.musterman@gmail.com'
+
+        MaskedEmail:
+            type: string
+            description: maskierte E-Mail Adresse
+            pattern: "^[a-zA-Z]\\*{3}[a-zA-Z]@[a-zA-Z]\\*{3}[a-zA-Z]$"
+            example: 'm***n@g***m'
 
         Password:
             type: string
@@ -1228,6 +1305,12 @@ components:
             # Regex: 1 Uppercase, 1 Lowercase, 1 Digit, 1 Special Char, Min 8 chars
             pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
             example: 'SicheresPasswort123!'
+
+        LastPasswordChangeAt:
+            description: Zeitpunkt der letzten Passwortänderung
+            type: string
+            format: date-time
+            nullable: true
 
         GameCreateRequest:
             type: object
@@ -1564,12 +1647,9 @@ components:
                 id:
                     $ref: '#/components/schemas/UserId'
                 email:
-                    $ref: '#/components/schemas/Email'
+                    $ref: '#/components/schemas/MaskedEmail'
                 lastPasswordChangeAt:
-                    description: Zeitpunkt der letzten Passwortänderung
-                    type: string
-                    format: date-time
-                    nullable: true
+                    $ref: '#/components/schemas/LastPasswordChangeAt'
                 roles:
                     type: array
                     items:
@@ -1626,10 +1706,7 @@ components:
                 displayName:
                     $ref: '#/components/schemas/DisplayName'
                 lastPasswordChangeAt:
-                    description: Zeitpunkt der letzten Passwortänderung
-                    type: string
-                    format: date-time
-                    nullable: true
+                    $ref: '#/components/schemas/LastPasswordChangeAt'
                 roles:
                     type: array
                     items:
@@ -1660,7 +1737,7 @@ components:
                 displayName:
                     $ref: '#/components/schemas/DisplayName'
                 email:
-                    $ref: '#/components/schemas/Email'
+                    $ref: '#/components/schemas/MaskedEmail'
                 roles:
                     type: array
                     items:
@@ -1672,10 +1749,7 @@ components:
                     items:
                         $ref: '#/components/schemas/PermissionName'
                 lastPasswordChangeAt:
-                    description: Zeitpunkt der letzten Passwortänderung
-                    type: string
-                    format: date-time
-                    nullable: true
+                    $ref: '#/components/schemas/LastPasswordChangeAt'
                 status:
                     $ref: '#/components/schemas/UserStatus'
                 activeBan:
@@ -1909,6 +1983,14 @@ components:
                       entity:
                           $ref: '#/components/schemas/UserResponse'
 
+        EmailRevealResponse:
+            type: object
+            required:
+                - email
+            properties:
+                email:
+                    $ref: '#/components/schemas/Email'
+
         LastModifiedInfos:
             type: object
             description: Informationen zur letzten Bearbeitung
@@ -1923,6 +2005,84 @@ components:
                 lastModifiedByUserId:
                     description: Id des User, der zuletzt Bearbeiter war
                     $ref: '#/components/schemas/UserId'
+
+        LastModifiedExtendedInfos:
+            type: object
+            description: Informationen zur letzten Bearbeitung mit Zusatzinfo
+            required:
+                - lastModifiedAt
+                - lastModifiedByUserId
+                - lastModifiedByUserDisplayName
+            allOf:
+                - $ref: '#/components/schemas/LastModifiedInfos'
+                - properties:
+                      lastModifiedByUserDisplayName:
+                          type: string
+                          description: Anzeigename des Users, der zuletzt Bearbeiter war
+
+        UserAdminOverviewResponse:
+            type: object
+            description: User Repräsentation für die Admin-Übersicht
+            required:
+                - id
+                - displayName
+                - maskedEmail
+                - status
+                - roles
+                - hasCustomPermissions
+                - isBanned
+            properties:
+                id:
+                    $ref: '#/components/schemas/UserId'
+                displayName:
+                    $ref: '#/components/schemas/DisplayName'
+                maskedEmail:
+                    $ref: '#/components/schemas/MaskedEmail'
+                status:
+                    $ref: '#/components/schemas/UserStatus'
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RoleName'
+                hasCustomPermissions:
+                    type: boolean
+                    description: liegen für den Nutzer benutzerdefinierte Berechtigungen vor?
+                isBanned:
+                    type: boolean
+                    description: ist der User aktuell gebannt?
+
+        UserAdminMasterDataResponse:
+            type: object
+            required:
+                - id
+                - displayName
+                - maskedEmail
+                - lastPasswordChangeAt
+                - status
+                - roles
+                - customPermissions
+            properties:
+                id:
+                    $ref: '#/components/schemas/UserId'
+                displayName:
+                    $ref: '#/components/schemas/DisplayName'
+                maskedEmail:
+                    $ref: '#/components/schemas/MaskedEmail'
+                lastPasswordChangeAt:
+                    $ref: '#/components/schemas/LastPasswordChangeAt'
+                status:
+                    $ref: '#/components/schemas/UserStatus'
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/RoleName'
+                customPermissions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/PermissionName'
+                lastModifiedInfos:
+                    $ref: '#/components/schemas/LastModifiedExtendedInfos'
+
     #    Steam64:
     #      type: integer
     #      description: Einzigartige Steam64-Id
