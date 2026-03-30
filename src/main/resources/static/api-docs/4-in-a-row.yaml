@@ -1075,6 +1075,7 @@ paths:
         get:
             summary: Liste alle aktiven Geräte/Sessions auf
             operationId: getActiveSessions
+            x-webclient-blocking: true
             tags:
                 - Auth
             responses:
@@ -1089,6 +1090,7 @@ paths:
         delete:
             summary: Alle Sessions außer der aktuellen beenden (Logout everywhere else)
             operationId: logoutOthers
+            x-webclient-blocking: true
             tags:
                 - Auth
             responses:
@@ -1105,6 +1107,7 @@ paths:
         delete:
             summary: Eine gezielte Session beenden (Gerät ausloggen)
             operationId: terminateSession
+            x-webclient-blocking: true
             tags:
                 - Auth
             parameters:
