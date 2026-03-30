@@ -14,5 +14,6 @@ public interface BanMapper {
     Ban fromBanWdto(BanWdto wdto);
 
     @Mapping(target = "userId", source = "user.id")
+    @Mapping(target = "lastModifiedInfos", source = ".")
     BanWdto toBanWdto(Ban entity);
 }

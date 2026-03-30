@@ -1,5 +1,6 @@
 package de.paulm.four_in_a_row.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.Hibernate;
@@ -7,10 +8,12 @@ import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.RevisionType;
 import org.hibernate.envers.query.AuditEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import de.paulm.four_in_a_row.domain.security.CustomRevisionEntity;
+import de.paulm.four_in_a_row.domain.security.ILastModified;
 import de.paulm.four_in_a_row.domain.security.User;
 import de.paulm.four_in_a_row.web.dtos.Audit;
 import jakarta.persistence.EntityManager;
@@ -52,5 +55,18 @@ public class AuditService {
                     .entity(entity)
                     .build();
         }).toList();
+    }
+
+    @Transactional
+    public <T extends ILastModified> void updateLastModified(T entity) {
+        if (entity == null)
+            return;
+
+        entity.setLastModifiedAt(LocalDateTime.now());
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User executingUser) {
+            entity.setLastModifiedByUserId(executingUser.getId());
+        }
     }
 }

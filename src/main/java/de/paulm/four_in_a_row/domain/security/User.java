@@ -51,7 +51,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Audited
 @Table(name = "APP_USER") // User ist SQL-Keyword
-public class User implements UserDetails {
+public class User extends LastModified implements UserDetails {
 
     public static final int EMAIL_MAX_LENGTH = 254;
 

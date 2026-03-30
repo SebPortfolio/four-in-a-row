@@ -34,7 +34,7 @@ import lombok.Setter;
 @Audited
 @Table(name = "BAN")
 @ValidDateRange
-public class Ban implements DateTimeRange<LocalDateTime> {
+public class Ban extends LastModified implements DateTimeRange<LocalDateTime> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

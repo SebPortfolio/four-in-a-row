@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import org.hibernate.envers.Audited;
 
+import de.paulm.four_in_a_row.domain.security.LastModified;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,7 +19,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,8 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Audited
 @Table(name = "PLAYER_PROFILE")
-@EqualsAndHashCode(exclude = "statistic")
-public class PlayerProfile {
+public class PlayerProfile extends LastModified {
 
     public static final int DISPLAY_NAME_MIN_LENGTH = 3;
     public static final String DISPLAY_NAME_REGEX = "^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){1,28}[a-zA-Z0-9]$";
@@ -53,9 +52,6 @@ public class PlayerProfile {
     @Column(name = "DISPLAY_NAME", nullable = false, unique = true)
     private String displayName;
 
-    /**
-     * Datum der Registrierung des Spielers.
-     */
     @NotNull(message = "Registrierungsdatum darf nicht null sein")
     @Column(name = "REGISTERED_ON", nullable = false)
     private LocalDate registeredOn;

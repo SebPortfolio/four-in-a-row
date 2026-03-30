@@ -21,6 +21,7 @@ public class PlayerProfileService {
     private final PlayerProfileRepository repository;
     private final PlayerStatisticService statisticService;
     private final PlayerValidationService validationService;
+    private final AuditService auditService;
 
     // TODO: limit implementieren
     public List<PlayerProfile> findProfilesByDisplayNameTerm(String term, Integer limit) {
@@ -73,6 +74,7 @@ public class PlayerProfileService {
         PlayerProfile player = getProfileById(playerId);
         if (newDisplayName != null && !newDisplayName.equals(player.getDisplayName())) {
             applyDisplayNameChange(player, newDisplayName);
+            auditService.updateLastModified(player);
         }
         return player;
     }

@@ -12,6 +12,7 @@ import de.paulm.four_in_a_row.domain.security.UserProjection;
 import de.paulm.four_in_a_row.repository.UserRepository;
 import de.paulm.four_in_a_row.web.dtos.UserAdminCreateRequest;
 import de.paulm.four_in_a_row.web.dtos.UserAdminPatchRequest;
+import de.paulm.four_in_a_row.web.dtos.UserAdminResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,23 +24,29 @@ public class UserAdministrationService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final PlayerProfileService playerProfileService;
+    private final AuditService auditService;
 
     @Transactional(readOnly = true)
-    public List<UserProjection> getUsersAsAdmin() {
-        return userRepository.findAllProjections();
+    public List<UserAdminResponse> getUsersAsAdmin() {
+        List<UserProjection> projections = userRepository.findAllProjections();
+        return projections.stream()
+                .map(projection -> buildUserAdminResponse(projection))
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public UserProjection getUserByIdAsAdmin(Long userId) {
+    public UserAdminResponse getUserByIdAsAdmin(Long userId) {
         if (userId == null) {
             throw new IllegalArgumentException("userId darf nicht null sein");
         }
-        return userRepository.findProjectionById(userId)
+        UserProjection projection = userRepository.findProjectionById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
+        log.debug("porjection.user.lastModifiedAt: {}", projection.user().getLastModifiedAt());
+        return buildUserAdminResponse(projection);
     }
 
     @Transactional
-    public UserProjection createUser(UserAdminCreateRequest request) {
+    public UserAdminResponse createUser(UserAdminCreateRequest request) {
         // TODO: Einmalpasswort generieren lassen
         // TODO: Einmalpasswort an den User via. Mail senden
         String tempOneTimePassword = "EinmalPasswort123!"; // FIXME: Einmalpasswort nicht setzen, sondern generieren
@@ -49,14 +56,32 @@ public class UserAdministrationService {
                 request.getDisplayName());
         userService.connectPlayer(user, player.getId());
 
-        return new UserProjection(user, player.getDisplayName());
+        return buildUserAdminResponse(new UserProjection(user, player.getDisplayName()));
     }
 
     @Transactional
-    public UserProjection patchUser(Long userId, UserAdminPatchRequest request) {
+    public UserAdminResponse patchUser(Long userId, UserAdminPatchRequest request) {
         User user = userService.patchUserAsAdmin(userId, request);
         PlayerProfile player = playerProfileService.getProfileById(user.getPlayerId());
 
-        return new UserProjection(user, player.getDisplayName());
+        return buildUserAdminResponse(new UserProjection(user, player.getDisplayName()));
+    }
+
+    private UserAdminResponse buildUserAdminResponse(UserProjection projection) {
+        User user = projection.user();
+        return UserAdminResponse.builder()
+                .id(user.getId())
+                .displayName(projection.displayName())
+                .email(userService.maskEmail(user.getEmail()))
+                .roles(user.getRoles())
+                .customPermissions(user.getCustomPermissions())
+                .lastPasswordChangeAt(user.getLastPasswordChangeAt())
+                .status(user.getStatus())
+                .activeBan(user.getActiveBan())
+                .bans(user.getBans())
+                .playerId(user.getPlayerId())
+                .lastModifiedAt(user.getLastModifiedAt())
+                .lastModifiedByUserId(user.getLastModifiedByUserId())
+                .build();
     }
 }

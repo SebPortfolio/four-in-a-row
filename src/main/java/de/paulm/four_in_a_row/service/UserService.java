@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,6 +35,7 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final UserValidationService validationService;
     private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
 
     private static final Set<Role> DEFAULT_ROLES = Set.of(Role.ROLE_USER);
     private static final Set<Permission> DEFAULT_PERMISSIONS = Set.of();
@@ -84,6 +87,9 @@ public class UserService implements UserDetailsService {
     }
 
     public boolean existsByEmail(String email) {
+        if (email == null) {
+            throw new IllegalArgumentException("email darf nicht null sein");
+        }
         return userRepository.existsByEmail(email);
     }
 
@@ -125,18 +131,26 @@ public class UserService implements UserDetailsService {
     @Transactional
     public User patchUserAsAdmin(Long userId, UserAdminPatchRequest request) {
         User user = internalFindById(userId);
+        boolean isDirty = false;
 
         if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
             applyEmailChange(user, request.getEmail());
+            isDirty = true;
         }
 
         if (request.getRoles() != null && !request.getRoles().equals(user.getRoles())) {
             applyRolesChange(user, request.getRoles());
+            isDirty = true;
         }
 
         if (request.getCustomPermissions() != null
                 && !request.getCustomPermissions().equals(user.getCustomPermissions())) {
             applyCustomPermissionsChange(user, request.getCustomPermissions());
+            isDirty = true;
+        }
+
+        if (isDirty) {
+            this.auditService.updateLastModified(user);
         }
 
         return user;

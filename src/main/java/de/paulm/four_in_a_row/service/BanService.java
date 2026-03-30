@@ -29,6 +29,7 @@ public class BanService {
     private final BanRepository banRepository;
     private final UserRepository userRepository;
     private final BanRequestValidationService banRequestValidationService;
+    private final AuditService auditService;
 
     @Transactional(readOnly = true)
     public Ban getBanById(Long banId) {
@@ -95,6 +96,8 @@ public class BanService {
         ban.setInternalNote(request.getInternalNote());
         ban.setEndAt(request.getNewEndAt());
 
+        auditService.updateLastModified(ban);
+
         log.info("Bann #{} editiert", banId);
         return ban;
     }
@@ -105,6 +108,8 @@ public class BanService {
         banRequestValidationService.validateCancel(userId, ban, request);
 
         ban.setCancelledAt(LocalDateTime.now());
+
+        auditService.updateLastModified(ban);
 
         log.info("Bann #{} aufgehoben", banId);
         return ban;

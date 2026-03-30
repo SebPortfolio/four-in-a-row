@@ -1378,6 +1378,8 @@ components:
                     format: date
                     description: Datum des letzten Spiels
                     example: '2026-02-23'
+                lastModifiedInfos:
+                    $ref: '#/components/schemas/LastModifiedInfos'
 
         PlayerPatchRequest:
             type: object
@@ -1591,6 +1593,8 @@ components:
                     $ref: '#/components/schemas/Ban'
                     nullable: true
                     description: Der aktuell wirksame Bann, falls vorhanden
+                lastModifiedInfos:
+                    $ref: '#/components/schemas/LastModifiedInfos'
 
         UserPatchRequest:
             type: object
@@ -1685,6 +1689,8 @@ components:
                         $ref: '#/components/schemas/Ban'
                 playerId:
                     $ref: '#/components/schemas/PlayerId'
+                lastModifiedInfos:
+                    $ref: '#/components/schemas/LastModifiedInfos'
 
         # Password wird im backend automatisch generiert und als Einmalpassword gesetzt
         UserAdminCreateRequest:
@@ -1771,6 +1777,8 @@ components:
                 lastInternalComment:
                     description: Kommentar zur Änderung
                     $ref: '#/components/schemas/BanActionComment'
+                lastModifiedInfos:
+                    $ref: '#/components/schemas/LastModifiedInfos'
 
         BanCreateRequest:
             type: object
@@ -1901,6 +1909,20 @@ components:
                       entity:
                           $ref: '#/components/schemas/UserResponse'
 
+        LastModifiedInfos:
+            type: object
+            description: Informationen zur letzten Bearbeitung
+            required:
+                - lastModifiedAt
+                - lastModifiedByUserId
+            properties:
+                lastModifiedAt:
+                    description: Zeitpunkt der letzten Bearbeitung
+                    type: string
+                    format: date-time
+                lastModifiedByUserId:
+                    description: Id des User, der zuletzt Bearbeiter war
+                    $ref: '#/components/schemas/UserId'
     #    Steam64:
     #      type: integer
     #      description: Einzigartige Steam64-Id
