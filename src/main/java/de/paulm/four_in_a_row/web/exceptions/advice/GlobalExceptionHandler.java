@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -101,6 +102,17 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 HttpStatus.UNAUTHORIZED,
                 "USERNAME_NOT_FOUND",
+                getDescriptionWithoutContextInfo(request),
+                Map.of());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> handleBadCredentials(BadCredentialsException ex, WebRequest request) {
+        ApiError error = new ApiError(
+                ex.getMessage(),
+                HttpStatus.UNAUTHORIZED,
+                "BAD_CREDENTIALS",
                 getDescriptionWithoutContextInfo(request),
                 Map.of());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
