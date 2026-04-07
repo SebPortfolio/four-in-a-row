@@ -14,17 +14,23 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @Table(name = "GAME")
+@Builder
 public class Game {
+
+    public static final byte ROWS = 6;
+    public static final byte COLUMNS = 7;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -62,18 +68,4 @@ public class Game {
     @Enumerated(EnumType.STRING)
     @Column(name = "GAME_MODE", nullable = false)
     private GameMode mode;
-
-    @Transient
-    private static final byte ROWS = 6;
-    @Transient
-    private static final byte COLUMNS = 7;
-
-    public Game(PlayerProfile player1, PlayerProfile player2, GameMode gameMode) {
-        this.player1 = player1;
-        this.player2 = player2;
-        this.status = GameStatus.IN_PROGRESS;
-        this.currentPlayer = player1; // Spieler 1 beginnt
-        this.board = new byte[ROWS][COLUMNS]; // Initialisiere leeres Spielfeld
-        this.mode = gameMode;
-    }
 }

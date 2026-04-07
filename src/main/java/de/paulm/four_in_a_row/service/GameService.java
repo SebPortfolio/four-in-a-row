@@ -83,8 +83,23 @@ public class GameService {
     public Game createGame(Long playerProfileId1, Long playerProfileId2, GameMode gameMode) {
         PlayerProfile player1 = playerProfileService.getProfileById(playerProfileId1);
         PlayerProfile player2 = playerProfileService.getProfileById(playerProfileId2);
-        Game game = new Game(player1, player2, gameMode);
+
+        Game game = buildGame(player1, player2, gameMode);
+
+        log.info("Erstelle Spiel: {}", game.toString());
+
         return repository.save(game);
+    }
+
+    private Game buildGame(PlayerProfile player1, PlayerProfile player2, GameMode gameMode) {
+        return Objects.requireNonNull(Game.builder()
+                .player1(player1)
+                .player2(player2)
+                .currentPlayer(player1) // Spieler 1 beginnt immer
+                .status(GameStatus.IN_PROGRESS)
+                .mode(gameMode)
+                .board(new byte[Game.ROWS][Game.COLUMNS]) // Leeres Spielfeld
+                .build());
     }
 
     public Game loadGame(Long spielId) {
