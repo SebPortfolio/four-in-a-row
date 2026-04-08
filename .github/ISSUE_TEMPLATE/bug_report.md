@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Dokumentiere einen Fehler, um ihn zu beheben.
-title: "'fix: '"
+title: 'fix: '
 labels: bug
 assignees: SebPortfolio
 

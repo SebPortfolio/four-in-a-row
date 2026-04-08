@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Erstelle eine strukturierte User Story für ein neues Feature.
-title: "'feat: '"
+title: 'feat: '
 labels: enhancement
 assignees: SebPortfolio
 
