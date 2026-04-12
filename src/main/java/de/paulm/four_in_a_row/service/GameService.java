@@ -5,6 +5,7 @@ import static de.paulm.four_in_a_row.repository.specs.GameSpecifications.hasPlay
 import static de.paulm.four_in_a_row.repository.specs.GameSpecifications.hasStatus;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.NonNull;
