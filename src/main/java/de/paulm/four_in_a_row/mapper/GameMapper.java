@@ -24,14 +24,14 @@ public interface GameMapper {
 
     List<Game> toEntityList(List<GameWdto> gameDtos);
 
-    default byte[][] mapBoardFromList(List<List<Integer>> value) {
+    default int[][] mapBoardFromList(List<List<Integer>> value) {
         if (value == null) {
             return null;
         }
 
         int rows = value.size();
         int cols = value.isEmpty() ? 0 : value.get(0).size();
-        byte[][] board = new byte[rows][cols];
+        int[][] board = new int[rows][cols];
 
         for (int i = 0; i < rows; i++) {
             List<Integer> row = value.get(i);
@@ -43,14 +43,14 @@ public interface GameMapper {
         return board;
     }
 
-    default List<List<Integer>> mapBoardtoList(byte[][] value) {
+    default List<List<Integer>> mapBoardtoList(int[][] value) {
         if (value == null)
             return null;
 
         List<List<Integer>> list = new ArrayList<>();
-        for (byte[] row : value) {
+        for (int[] row : value) {
             List<Integer> rowList = new ArrayList<>();
-            for (byte b : row) {
+            for (int b : row) {
                 rowList.add((int) b);
             }
             list.add(rowList);
