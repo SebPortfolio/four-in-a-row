@@ -29,8 +29,8 @@ import lombok.Setter;
 @Builder
 public class Game {
 
-    public static final byte ROWS = 6;
-    public static final byte COLUMNS = 7;
+    public static final int ROWS = 6;
+    public static final int COLUMNS = 7;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -63,7 +63,7 @@ public class Game {
      */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "BOARD")
-    private byte[][] board;
+    private int[][] board;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "GAME_MODE", nullable = false)

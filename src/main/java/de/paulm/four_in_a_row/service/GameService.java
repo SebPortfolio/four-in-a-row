@@ -98,7 +98,7 @@ public class GameService {
                 .currentPlayer(player1) // Spieler 1 beginnt immer
                 .status(GameStatus.IN_PROGRESS)
                 .mode(gameMode)
-                .board(new byte[Game.ROWS][Game.COLUMNS]) // Leeres Spielfeld
+                .board(new int[Game.ROWS][Game.COLUMNS]) // Leeres Spielfeld
                 .build());
     }
 
@@ -142,9 +142,9 @@ public class GameService {
     }
 
     @Transactional
-    public Game makeMove(Long gameId, byte column) {
+    public Game makeMove(Long gameId, int column) {
         Game game = this.getGameById(gameId);
-        byte[][] board = game.getBoard();
+        int[][] board = game.getBoard();
 
         validateGameState(game);
         validateMove(board, column);
@@ -161,7 +161,7 @@ public class GameService {
     }
 
     private boolean checkAndHandleGameEnd(Game game) {
-        byte[][] board = game.getBoard();
+        int[][] board = game.getBoard();
 
         byte boardNumberOfCurrentPlayer = getBoardNumberForCurrentPlayer(game);
 
@@ -235,7 +235,7 @@ public class GameService {
         }
     }
 
-    private void validateMove(byte[][] board, byte column) {
+    private void validateMove(int[][] board, int column) {
         if (column < 0 || column >= board[0].length) {
             throw new IllegalArgumentException("Ungültige Spalte: " + column);
         }
@@ -244,7 +244,7 @@ public class GameService {
         }
     }
 
-    private void dropToken(byte[][] board, byte column, byte boardNumber) {
+    private void dropToken(int[][] board, int column, byte boardNumber) {
         for (int row = board.length - 1; row >= 0; row--) {
             if (board[row][column] == 0) {
                 board[row][column] = boardNumber;
@@ -310,7 +310,7 @@ public class GameService {
      * @return true, wenn der Spieler mit der angegebenen Board-Nummer vier Steine
      *         in einer Reihe hat, andernfalls false
      */
-    private boolean isVictory(byte[][] board, byte boardNumber) {
+    private boolean isVictory(int[][] board, byte boardNumber) {
         int totalRows = board.length;
         int totalColumns = board[0].length;
 
@@ -356,11 +356,11 @@ public class GameService {
         return false;
     }
 
-    private boolean isDraw(byte[][] board) {
+    private boolean isDraw(int[][] board) {
         return isBoardFull(board);
     }
 
-    private boolean isBoardFull(byte[][] board) {
+    private boolean isBoardFull(int[][] board) {
         for (int column = 0; column < board[0].length; column++) {
             if (board[0][column] == 0) {
                 return false;
